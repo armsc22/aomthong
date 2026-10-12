@@ -1,0 +1,88 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "สมัครสมาชิกผ่าน LINE";
+    var liffId = ViewData["LiffId"] as string ?? string.Empty;
+}
+
+<section class="section">
+    <div class="container container--narrow">
+        <div class="account-card">
+            <div class="account-card__head">
+                <img src="~/img/logo.png" alt="" width="56" height="56" />
+                <div>
+                    <h1>สมัครสมาชิกผ่านบัญชี LINE</h1>
+                    <p>เชื่อมบัญชี LINE เพื่อใช้รับข่าวสารและแจ้งรายการฝาก-ถอนอัตโนมัติ</p>
+                </div>
+            </div>
+
+            <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data" class="account-form" id="register-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error"></div>
+
+                <div class="line-connect">
+                    <partial name="_Icon" model="@("line")" />
+                    <div class="line-connect__text">
+                        <strong>บัญชี LINE ของคุณ</strong>
+                        <span id="line-status">@(string.IsNullOrEmpty(Model.LineUserId) ? "ยังไม่ได้เชื่อมบัญชี LINE" : $"เชื่อมแล้ว: {Model.LineDisplayName ?? Model.LineUserId}")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(liffId))
+                    {
+                        <button class="btn-line" type="button" id="line-connect-btn" data-liff-id="@liffId" data-bind-url="@Url.Action("BindLineUserId", "Account")">เชื่อมบัญชี LINE</button>
+                    }
+                </div>
+                <input type="hidden" id="LineUserId" name="LineUserId" value="@Model.LineUserId" />
+                <input type="hidden" id="LineDisplayName" name="LineDisplayName" value="@Model.LineDisplayName" />
+                <input type="hidden" id="LinkNonce" name="LinkNonce" value="@Model.LinkNonce" />
+                <div class="account-form__row">
+                    <div>
+                        <label for="firstName">ชื่อ</label>
+                        <input class="field" id="firstName" name="FirstName" value="@Model.FirstName" required />
+                    </div>
+                    <div>
+                        <label for="lastName">นามสกุล</label>
+                        <input class="field" id="lastName" name="LastName" value="@Model.LastName" required />
+                    </div>
+                </div>
+
+                <div class="account-form__row">
+                    <div>
+                        <label for="citizenId">เลขบัตรประชาชน (13 หลัก)</label>
+                        <input class="field" id="citizenId" name="CitizenId" value="@Model.CitizenId" inputmode="numeric" maxlength="13" required />
+                    </div>
+                    <div>
+                        <label for="phone">เบอร์โทร</label>
+                        <input class="field" id="phone" name="Phone" value="@Model.Phone" inputmode="tel" required />
+                    </div>
+                </div>
+
+                <label for="pin">PIN 6 หลัก</label>
+                <input class="field" id="pin" name="Pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" required />
+                <label for="confirmPin">ยืนยัน PIN</label>
+                <input class="field" id="confirmPin" name="ConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" required />
+                <label for="email">อีเมล</label>
+                <input class="field" id="email" name="Email" value="@Model.Email" type="email" />
+
+                <label for="address">ที่อยู่จัดส่ง</label>
+                <textarea class="field" id="address" name="Address" rows="3">@Model.Address</textarea>
+
+                <fieldset><legend>บัญชีธนาคารและเอกสารประกอบการสมัคร</legend>
+                    <p>กรอกให้ครบและแนบภาพ JPG/PNG ทั้ง 3 รูป ขนาดไม่เกิน 5 MB ต่อรูป ข้อมูลนี้จะแสดงในโปรไฟล์แบบอ่านอย่างเดียว</p>
+                    <label asp-for="BankName">ชื่อธนาคาร</label><input class="field" asp-for="BankName" maxlength="100" required />
+                    <label asp-for="BankAccountNumber">หมายเลขบัญชีธนาคาร</label><input class="field" asp-for="BankAccountNumber" type="text" inputmode="numeric" pattern="[0-9]{6,20}" minlength="6" maxlength="20" required /><small>กรอกเฉพาะตัวเลข ไม่ใส่ขีดหรือช่องว่าง</small>
+                    <label asp-for="CitizenCardImage">รูปบัตรประชาชนด้านหน้า</label><input class="field" asp-for="CitizenCardImage" type="file" accept="image/jpeg,image/png" required />
+                    <label asp-for="PortraitImage">รูปถ่ายหน้าตรง</label><input class="field" asp-for="PortraitImage" type="file" accept="image/jpeg,image/png" required />
+                    <label asp-for="BankBookImage">รูปหน้าสมุดบัญชีธนาคาร</label><input class="field" asp-for="BankBookImage" type="file" accept="image/jpeg,image/png" required />
+                    <p>กรุณาเชื่อม LINE ก่อนเลือกไฟล์ หากหน้าฟอร์มโหลดใหม่ต้องเลือกไฟล์อีกครั้ง เอกสารเปิดดูได้เฉพาะเจ้าของบัญชีและผู้ดูแล</p>
+                </fieldset>
+                <button class="btn-gold" type="submit" disabled>กรุณาเชื่อมบัญชี LINE ก่อนสมัคร</button>
+                <a class="btn-ghost" asp-controller="Account" asp-action="Login">มีบัญชีแล้ว? เข้าสู่ระบบ</a>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="~/js/line-link.js" asp-append-version="true"></script>
+}
+

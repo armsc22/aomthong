@@ -1,0 +1,20 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>กำลังกลับจาก LINE</title>
+</head>
+<body>
+    <main style="max-width:560px;margin:80px auto;padding:24px;font-family:Tahoma,sans-serif;line-height:1.8">
+        <h1>กำลังเชื่อมบัญชี LINE</h1>
+        <p id="line-return-status" role="status" data-liff-id="@Configuration["LineApi:LiffId"]">กรุณารอสักครู่ ระบบกำลังกลับไปหน้าสมัครสมาชิก</p>
+        <a href="/Account/Register" id="line-return-retry" hidden>กลับไปเชื่อม LINE ใหม่</a>
+    </main>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="~/js/line-return.js" asp-append-version="true"></script>
+</body>
+</html>

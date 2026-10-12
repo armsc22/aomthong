@@ -1,0 +1,6 @@
+@model IReadOnlyList<Product>
+@{ ViewData["Title"] = "รายการสินค้า"; }
+<section class="teller-workspace"><h1>รายการสินค้าหน้าร้าน</h1><p>ข้อมูลแค็ตตาล็อกตัวอย่างของ GoldShopWeb ยังไม่มีการบันทึกความเคลื่อนไหวคลัง</p>
+<div class="teller-table"><table><thead><tr><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>น้ำหนัก</th><th>ราคา</th><th>จำนวนในแค็ตตาล็อก</th></tr></thead><tbody>
+@foreach(var product in Model){<tr><td>@product.Sku</td><td>@product.Name</td><td>@product.Weight</td><td>@product.Price.ToBaht()</td><td>@product.Stock</td></tr>}
+</tbody></table></div></section>

@@ -1,0 +1,110 @@
+@model Cart
+@{
+    ViewData["Title"] = "ตะกร้าสินค้า";
+    var freeShippingThreshold = (decimal)(ViewData["FreeShippingThreshold"] ?? 0m);
+    var freeShippingRemaining = (decimal)(ViewData["FreeShippingRemaining"] ?? 0m);
+    var shipping = (decimal)(ViewData["Shipping"] ?? 0m);
+}
+
+<section class="page-hero page-hero--compact">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="เส้นทาง">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <span>ตะกร้าสินค้า</span>
+        </nav>
+        <h1>ตะกร้าสินค้า</h1>
+        <p>ตรวจสอบรายการก่อนดำเนินการชำระเงิน</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        @if (TempData["CartMessage"] is string message)
+        {
+            <div class="flash" role="status">@message</div>
+        }
+
+        @if (Model.IsEmpty)
+        {
+            <div class="empty-state">
+                <partial name="_Icon" model="@("cart")" />
+                <strong>ตะกร้าของคุณยังว่างเปล่า</strong>
+                <p>เลือกสินค้าที่ถูกใจแล้วเพิ่มลงตะกร้าได้เลย</p>
+                <a class="btn-gold" asp-controller="Products" asp-action="Index">เลือกซื้อสินค้า</a>
+            </div>
+        }
+        else
+        {
+            <div class="cart-layout">
+                <div class="cart-items">
+                    <div class="cart-head">
+                        <span>สินค้า</span><span>ราคา</span><span>จำนวน</span><span>รวม</span><span></span>
+                    </div>
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="cart-row">
+                            <div class="cart-row__product">
+                                <img src="@item.Image" alt="" />
+                                <div>
+                                    <a href="@item.Url">@item.Name</a>
+                                    <small>@item.Weight</small>
+                                </div>
+                            </div>
+                            <span class="cart-row__price">@item.Price.ToBaht()</span>
+                            <form class="cart-row__qty" asp-controller="Cart" asp-action="Update" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" aria-label="จำนวน @item.Name"
+                                       onchange="this.form.submit()" />
+                            </form>
+                            <span class="cart-row__total">@item.LineTotal.ToBaht()</span>
+                            <form asp-controller="Cart" asp-action="Remove" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button class="btn-icon btn-icon--danger" type="submit" aria-label="ลบ @item.Name ออกจากตะกร้า">
+                                    <partial name="_Icon" model="@("trash")" />
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+
+                <aside class="cart-summary">
+                    <h2>สรุปคำสั่งซื้อ</h2>
+                    <dl>
+                        <div><dt>สินค้า @Model.TotalQuantity ชิ้น</dt><dd>@Model.SubTotal.ToBaht()</dd></div>
+                        <div><dt>ค่าจัดส่ง</dt><dd>@(shipping == 0 ? "ฟรี" : shipping.ToBaht())</dd></div>
+                        <div class="cart-summary__total"><dt>ยอดรวม</dt><dd>@(Model.SubTotal + shipping).ToBaht()</dd></div>
+                    </dl>
+
+                    @if (freeShippingRemaining > 0)
+                    {
+                        <p class="cart-summary__hint">
+                            <partial name="_Icon" model="@("truck")" />
+                            ซื้อเพิ่มอีก @freeShippingRemaining.ToBaht() เพื่อรับส่งฟรี
+                        </p>
+                        <div class="progress-track" role="presentation">
+                            <div class="progress-fill" style="width: @(Math.Min(100, Model.SubTotal / freeShippingThreshold * 100))%"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="cart-summary__hint cart-summary__hint--ok">
+                            <partial name="_Icon" model="@("check")" />
+                            คุณได้รับสิทธิ์ส่งฟรีแล้ว
+                        </p>
+                    }
+
+                    <a class="btn-gold btn-gold--block" asp-controller="Checkout" asp-action="Index">ดำเนินการชำระเงิน</a>
+                    <a class="btn-ghost btn-ghost--block" asp-controller="Products" asp-action="Index">เลือกซื้อต่อ</a>
+
+                    <form asp-controller="Cart" asp-action="Clear" method="post" class="cart-clear">
+                        @Html.AntiForgeryToken()
+                        <button class="link-danger" type="submit">ล้างตะกร้าทั้งหมด</button>
+                    </form>
+                </aside>
+            </div>
+        }
+    </div>
+</section>

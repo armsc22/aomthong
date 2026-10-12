@@ -1,0 +1,44 @@
+@model CashSaleViewModel
+@{ ViewData["Title"] = "ขายสินค้าชำระเงินสด"; }
+<section class="customers-page">
+    <div class="customers-heading">
+        <div><h1>ขายสินค้าชำระเงินสด</h1><p>@Model.Customer.MemberCode · @Model.Customer.FullName</p></div>
+        <a class="bottom-button" asp-controller="Customers" asp-action="Index">กลับรายชื่อลูกค้า</a>
+    </div>
+    <p class="sale-draft-notice">โครงหน้ารายการขายเงินสด — ทดลองเลือกสินค้าและดูยอดรวมได้ ยังไม่บันทึกยอดขายหรือส่ง LINE OA</p>
+    <form id="cash-sale-form">
+        <input asp-for="CustomerId" type="hidden" />
+        <div asp-validation-summary="All" class="sale-errors" role="alert"></div>
+        <div class="table-wrap">
+            <table class="sale-table">
+                <thead><tr><th>สินค้า</th><th>จำนวน</th><th>รวม (บาท)</th><th>จัดการ</th></tr></thead>
+                <tbody id="sale-lines">
+                    @for (var i = 0; i < Model.Items.Count; i++)
+                    {
+                        <tr>
+                            <td><select asp-for="Items[i].ProductId" class="sale-product" required>
+                                <option value="">เลือกสินค้า</option>
+                                @foreach (var product in Model.Products)
+                                {
+                                    <option value="@product.Id" data-price="@product.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">@product.Name — @product.Price.ToString("N2") บาท</option>
+                                }
+                            </select></td>
+                            <td><input asp-for="Items[i].Quantity" type="number" min="1" max="1000" class="sale-quantity" required /></td>
+                            <td class="sale-line-total">0.00</td>
+                            <td><button type="button" class="sale-remove">ลบ</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p><button type="button" id="sale-add" class="bottom-button">เพิ่มสินค้า</button></p>
+        <p>รวมเงินรับชำระ: <strong id="sale-total">0.00</strong> บาท</p>
+        <p>ใช้ราคาขายตามแค็ตตาล็อก ไม่มีการบวกค่ากำเหน็จหรือภาษีเพิ่มในรายการนี้</p>
+        <p>เลขเอกสาร: C + เดือน + วัน + เลขลำดับ 4 หลัก · รหัสลูกค้า: M + เดือน + วัน + เลขลำดับ 4 หลัก</p>
+        <p>ตัวอย่างใบเสร็จใช้เลขลงท้าย 0000 และยังไม่ดึงสินค้าที่เลือกไปบันทึก รอเชื่อมขั้นตอนรับเงินและ LINE OA</p>
+        <a class="bottom-button" asp-area="Admin" asp-controller="Sales" asp-action="Preview" asp-route-customerId="@Model.CustomerId">ดูโครงใบเสร็จ</a>
+        <button type="button" class="bottom-button" disabled>บันทึกการขาย — รอเชื่อมขั้นตอน</button>
+        <button type="button" class="bottom-button" disabled>ส่ง LINE OA — รอเชื่อมขั้นตอน</button>
+    </form>
+</section>
+@section Scripts { <script src="~/js/cash-sale.js" asp-append-version="true"></script> }

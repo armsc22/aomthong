@@ -1,0 +1,48 @@
+@model CheckoutViewModel
+@{ ViewData["Title"] = "ดำเนินการชำระเงิน"; }
+<section class="page-hero page-hero--compact">
+    <div class="container"><nav class="breadcrumb"><a asp-controller="Cart" asp-action="Index">ตะกร้าสินค้า</a><span> / ตรวจสอบคำสั่งซื้อ</span></nav><h1>ดำเนินการชำระเงิน</h1><p>ตรวจสอบสินค้าและข้อมูลของคุณก่อนยืนยันรายการ</p></div>
+</section>
+<section class="section">
+    <div class="container cart-layout">
+        <div>
+            <div class="account-card">
+                <h2>ข้อมูลสมาชิก</h2>
+                <p><strong>@Model.Customer.FullName</strong></p>
+                <p>รหัสสมาชิก: @Model.Customer.MemberCode</p>
+                <p>เบอร์โทรศัพท์: @Model.Customer.Phone</p>
+                <p>ที่อยู่: @(string.IsNullOrWhiteSpace(Model.Customer.Address) ? "ยังไม่ได้ระบุที่อยู่" : Model.Customer.Address)</p>
+                <a asp-controller="Account" asp-action="Profile">แก้ไขข้อมูลสมาชิก</a>
+            </div>
+            <div class="account-card" style="margin-top:24px">
+                <h2>รายการสินค้า</h2>
+                @foreach (var item in Model.Cart.Items)
+                {
+                    <div class="checkout-item">
+                        <img src="@item.Image" alt="" width="72" height="72" />
+                        <div><strong>@item.Name</strong><p>@item.Weight · @item.Price.ToBaht() × @item.Quantity ชิ้น</p></div>
+                        <strong>@item.LineTotal.ToBaht()</strong>
+                    </div>
+                }
+                <a asp-controller="Cart" asp-action="Index">กลับไปแก้ไขสินค้าในตะกร้า</a>
+            </div>
+        </div>
+        <aside class="cart-summary">
+            <h2>สรุปคำสั่งซื้อ</h2>
+            <dl>
+                <div><dt>สินค้า @Model.Cart.TotalQuantity ชิ้น</dt><dd>@Model.Cart.SubTotal.ToBaht()</dd></div>
+                <div><dt>ค่าจัดส่ง</dt><dd>@(Model.Shipping == 0 ? "ฟรี" : Model.Shipping.ToBaht())</dd></div>
+                <div class="cart-summary__total"><dt>ยอดรวม</dt><dd>@Model.Total.ToBaht()</dd></div>
+            </dl>
+            @if (TempData["SlipMessage"] is string message) { <p role="status">@message</p> }
+            <form asp-action="UploadSlip" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="All" role="alert"></div>
+                <input type="hidden" name="submissionId" value="@ViewData["SubmissionId"]" />
+                <label for="payment-slip">แนบสลิปการชำระเงิน</label>
+                <input id="payment-slip" type="file" name="slip" accept="image/jpeg,image/png" required />
+                <p>JPG หรือ PNG ขนาดไม่เกิน 5 MB สถานะจะเป็นรอผลจนกว่าแอดมินตรวจสอบ</p>
+                <button type="submit" class="btn btn-primary">ส่งสลิปเพื่อยืนยันการชำระเงิน</button>
+            </form>
+        </aside>
+    </div>
+</section>

@@ -1,0 +1,7 @@
+@model IReadOnlyList<ActivityEntry>
+@{ViewData["Title"]="ประวัติการทำงาน";}
+<section class="teller-workspace"><h1>Timeline การทำงาน</h1><p>แสดงล่าสุดไม่เกิน 500 เหตุการณ์ · เวลาไทย · Completed หมายถึงคำขอจบการทำงาน ไม่ใช่ยืนยันธุรกรรมสำเร็จ</p>
+<form method="get"><label>ผู้ทำรายการ<input name="actor" value="@ViewData["Actor"]" placeholder="staff:ชื่อผู้ใช้ หรือ customer:เลขภายใน"/></label><label>กิจกรรม<input name="activity" value="@ViewData["Activity"]" placeholder="Savings / Login / LINE"/></label><button>ค้นหา</button></form>
+<div class="teller-table"><table><thead><tr><th>วันเวลา</th><th>ผู้ทำรายการ</th><th>กิจกรรม</th><th>อ้างอิง</th><th>ผล</th><th>รหัสติดตาม</th></tr></thead><tbody>
+@foreach(var row in Model){<tr><td>@DateTimeOffset.Parse(row.Time).ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss")</td><td>@row.Actor</td><td>@row.Action</td><td>@row.Target</td><td>@row.Outcome</td><td>@row.TraceId</td></tr>}
+</tbody></table></div><p>การปิดแท็บไม่ถือว่าออกจากระบบ รายการนี้แสดงกิจกรรมล่าสุดที่เซิร์ฟเวอร์ได้รับ ไม่มีการบันทึกรหัสผ่าน PIN หรือไฟล์เอกสารใน Timeline</p></section>

@@ -1,0 +1,50 @@
+@model DepositReceiptPreview
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ตัวอย่างใบรับเงินมัดจำ — ฝากเงินออมทอง</title>
+    <link rel="stylesheet" href="~/css/receipt.css" asp-append-version="true" />
+</head>
+<body class="receipt-page">
+    <nav class="receipt-toolbar">
+        <a asp-area="Admin" asp-controller="Customers" asp-action="Index">กลับรายชื่อลูกค้า</a>
+        <button type="button" onclick="window.print()">พิมพ์ / บันทึก PDF</button>
+    </nav>
+    <main class="receipt-sheet">
+        <p class="receipt-draft">ตัวอย่างโครงเอกสาร · ยังไม่รับเงินหรือบันทึกยอดฝาก</p>
+        <header class="receipt-header">
+            <div class="receipt-brand">
+                <img src="~/img/logo.png" alt="โลโก้ร้าน" />
+                <div><h2>@Model.Shop.ShopName</h2><p>@Model.Shop.Address</p><p>โทร: @Model.Shop.Phone</p></div>
+            </div>
+            <div class="receipt-title"><h1>ใบรับเงินมัดจำ</h1><span>RECEIPT</span></div>
+        </header>
+        <dl class="receipt-details">
+            <div><dt>เลขที่เอกสาร (Document No.)</dt><dd>@Model.DocumentNumber</dd></div>
+            <div><dt>ลูกค้า (Customer)</dt><dd>@Model.Customer.FullName</dd></div>
+            <div><dt>ตัวอย่างรูปแบบรหัสลูกค้า (Member Code)</dt><dd>@Model.MemberCodeExample</dd></div>
+            <div><dt>วันที่ (Date) · เวลาไทย</dt><dd>@Model.PreviewTime.ToThaiDate() @Model.PreviewTime.ToString("HH:mm:ss")</dd></div>
+            <div><dt>ติดต่อ (Contact)</dt><dd>@(string.IsNullOrWhiteSpace(Model.Customer.Phone) ? "—" : Model.Customer.Phone)</dd></div>
+            <div class="receipt-wide"><dt>ที่อยู่ (Address)</dt><dd>@(string.IsNullOrWhiteSpace(Model.Customer.Address) ? "—" : Model.Customer.Address)</dd></div>
+        </dl>
+        <table class="receipt-items">
+            <thead><tr><th scope="col">รายการ (Description)</th><th scope="col">จำนวน</th><th scope="col" class="amount">จำนวนเงิน (THB)</th></tr></thead>
+            <tbody><tr><td>รับเงินมัดจำ / ฝากเงินออมทอง (ตัวอย่าง)</td><td>1</td><td class="amount">0.00</td></tr></tbody>
+        </table>
+        <section class="receipt-totals receipt-deposit-totals" aria-label="ยอดรวมตัวอย่าง">
+            <span class="receipt-watermark" aria-hidden="true">DEPOSIT</span>
+            <div><span>รวมเป็นเงิน</span><span>0.00 บาท</span></div>
+            <div><span>ส่วนลด</span><span>—</span></div>
+            <div class="net"><span>ยอดสุทธิ (Net Total)</span><span>0.00 บาท</span></div>
+        </section>
+        <footer class="receipt-footer">
+            <strong>ขอบคุณที่ไว้วางใจ @Model.Shop.ShopName</strong>
+            <p>ตัวอย่างรูปแบบใบรับเงินมัดจำสำหรับฝากเงินออมทอง ไม่ใช่เอกสารยืนยันการรับเงิน</p>
+            <p>เลขลงท้าย 0000 และยอด 0.00 เป็นตัวอย่าง ยังไม่ออกเลขจริงหรือส่ง LINE OA</p>
+        </footer>
+    </main>
+</body>
+</html>

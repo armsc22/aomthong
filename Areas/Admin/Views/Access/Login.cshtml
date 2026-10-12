@@ -1,0 +1,20 @@
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "เข้าสู่ระบบผู้ดูแล";
+}
+<section class="section">
+    <div class="container container--narrow">
+        <div class="account-card">
+            <h1>เข้าสู่ระบบผู้ดูแล</h1>
+            <p class="form-error">@ViewData["Error"]</p>
+            <form asp-area="Admin" asp-controller="Access" asp-action="Login" method="post" class="account-form">
+                <label for="username">ชื่อผู้ใช้พนักงาน</label>
+                <input class="field" id="username" name="username" autocomplete="username" maxlength="40" />
+                <p>ก่อนสร้างเจ้าของระบบคนแรก ใช้รหัสแอดมินเดิมและเว้นชื่อผู้ใช้ว่าง หลังจากนั้นใช้บัญชีพนักงานที่สร้างไว้</p>
+                <label for="password">รหัสผ่านผู้ดูแล</label>
+                <input class="field" id="password" name="password" type="password" autocomplete="current-password" required />
+                <button class="btn-gold" type="submit">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,11 @@
+@model GoldShopWeb.Services.ApprovedSlip
+@inject ShopSettings Shop
+@{ Layout = null; var data = System.Text.Json.JsonDocument.Parse(Model.Snapshot).RootElement; }
+<!doctype html><html lang="th"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>ใบเสร็จ @Model.ReceiptNumber</title>
+<style>body{font:16px/1.7 Tahoma,sans-serif;color:#25384a;margin:40px auto;padding:24px;max-width:800px;border-top:6px solid #801f24}header{display:flex;justify-content:space-between}table{width:100%;border-collapse:collapse;margin:30px 0}td,th{padding:12px;text-align:left;border-bottom:1px solid #ddd}.total{text-align:right}@@media print{button{display:none}body{margin:0}}</style></head><body>
+<header><div><h2>@Shop.ShopName</h2><p>@Shop.Address<br/>โทร: @Shop.Phone</p></div><h1>ใบเสร็จรับเงิน</h1></header>
+<p>เลขที่ใบเสร็จ: @Model.ReceiptNumber<br/>เลขที่รายการ: @Model.TransactionNumber<br/>วันที่รับรองการชำระ: @DateTimeOffset.Parse(Model.ReviewedAt).ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</p>
+<p>รหัสลูกค้า: @data.GetProperty("MemberCode").GetString()<br/>ชื่อ–นามสกุล: @data.GetProperty("FullName").GetString()</p>
+<table><thead><tr><th>รายการ</th><th>จำนวน</th><th>ราคาต่อหน่วย</th><th>รวม</th></tr></thead><tbody>
+@foreach(var item in data.GetProperty("Items").EnumerateArray()){<tr><td>@item.GetProperty("Name").GetString()</td><td>@item.GetProperty("Quantity").GetInt32()</td><td>@item.GetProperty("Price").GetDecimal().ToBaht()</td><td>@((item.GetProperty("Price").GetDecimal()*item.GetProperty("Quantity").GetInt32()).ToBaht())</td></tr>}
+</tbody></table><p class="total">ค่าจัดส่ง: @data.GetProperty("Shipping").GetDecimal().ToBaht()</p><h2 class="total">ยอดรับชำระ: @data.GetProperty("Total").GetDecimal().ToBaht()</h2><p>ชำระเรียบร้อย · เอกสารนี้เป็นใบเสร็จรับเงิน ไม่ใช่ใบกำกับภาษี</p><button onclick="window.print()">พิมพ์ / บันทึก PDF</button></body></html>

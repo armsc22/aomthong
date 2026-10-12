@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#241c12"/>
+      <stop offset="1" stop-color="#3a2d1a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7e7b4"/>
+      <stop offset="0.5" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#a8801f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="152" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.3"/>
+  <g transform="rotate(7 200 210)">
+      <circle cx="200" cy="240" r="72" fill="none" stroke="url(#gold)" stroke-width="16"/>
+      <path fill="url(#gold)" d="M200 128l-30 40h60z"/>
+      <path fill="url(#gold)" d="M170 168l30 34 30-34z" opacity=".85"/>
+  </g>
+  <text x="200" y="372" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="20" letter-spacing="4" fill="#c9a84c">RING 2</text>
+</svg>

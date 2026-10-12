@@ -1,0 +1,62 @@
+@{
+    ViewData["Title"] = "ติดต่อและสาขา";
+}
+
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="เส้นทาง">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <span>ติดต่อและสาขา</span>
+        </nav>
+        <h1>ติดต่อและสาขา</h1>
+        <p>ทีมงานพร้อมให้บริการทั้งหน้าร้านและช่องทางออนไลน์</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container two-col">
+        <div class="contact-card">
+            <h2>สำนักงานใหญ่</h2>
+            <ul class="contact-list">
+                <li><partial name="_Icon" model="@("pin")" /> <span>@Shop.Address</span></li>
+                <li><partial name="_Icon" model="@("phone")" /> <span>@Shop.Phone (สำนักงาน) , @Shop.Hotline (สายด่วน)</span></li>
+                <li><partial name="_Icon" model="@("mail")" /> <span>@Shop.Email</span></li>
+                <li><partial name="_Icon" model="@("line")" /> <span>LINE @Shop.LineId</span></li>
+                <li><partial name="_Icon" model="@("clock")" /> <span>@Shop.OpeningHours</span></li>
+            </ul>
+            <div class="contact-card__map" role="img" aria-label="แผนที่ตำแหน่งร้าน (ตัวอย่าง)">
+                <span>พื้นที่แสดงแผนที่</span>
+            </div>
+        </div>
+
+        <div class="contact-card">
+            <h2>ส่งข้อความถึงเรา</h2>
+            <p class="contact-card__note">ฟอร์มนี้เป็นตัวอย่างโครงสร้าง ยังไม่มีการบันทึกข้อความลงระบบ</p>
+            <form class="contact-form" method="post" action="#">
+                <div class="form-row">
+                    <label for="cf-name">ชื่อ-นามสกุล</label>
+                    <input class="field" id="cf-name" name="name" type="text" required />
+                </div>
+                <div class="form-row">
+                    <label for="cf-phone">เบอร์โทร</label>
+                    <input class="field" id="cf-phone" name="phone" type="tel" required />
+                </div>
+                <div class="form-row">
+                    <label for="cf-topic">หัวข้อ</label>
+                    <select class="field" id="cf-topic" name="topic">
+                        <option>สอบถามราคาสินค้า</option>
+                        <option>โปรแกรมออมทอง</option>
+                        <option>รับซื้อทองเก่า</option>
+                        <option>อื่น ๆ</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="cf-message">ข้อความ</label>
+                    <textarea class="field" id="cf-message" name="message" rows="5" required></textarea>
+                </div>
+                <button class="btn-gold" type="submit">ส่งข้อความ</button>
+            </form>
+        </div>
+    </div>
+</section>

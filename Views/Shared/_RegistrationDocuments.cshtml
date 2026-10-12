@@ -1,0 +1,16 @@
+@model int
+@inject GoldShopWeb.Data.MemberStore Store
+@{var bank=Store.BankDetails(Model);}
+<section class="account-card" style="margin-top:24px">
+    <h2>บัญชีธนาคารและเอกสารสมัครสมาชิก</h2><p>ข้อมูลที่แจ้งตอนสมัคร · อ่านอย่างเดียว</p>
+    @if(bank is null){<p>บัญชีนี้ยังไม่มีข้อมูลธนาคารและเอกสารจากการสมัคร</p>}
+    else{
+        <dl><dt>ธนาคาร</dt><dd>@bank.BankName</dd><dt>หมายเลขบัญชีธนาคาร</dt><dd>@bank.BankAccountNumber</dd></dl>
+        @foreach(var item in new[]{("citizen-card","บัตรประชาชนด้านหน้า"),("portrait","รูปถ่ายหน้าตรง"),("bank-book","หน้าสมุดบัญชีธนาคาร")}){
+            <figure style="margin:20px 0"><figcaption>@item.Item2</figcaption>
+                <a asp-area="" asp-controller="MemberDocuments" asp-action="Image" asp-route-customerId="@Model" asp-route-kind="@item.Item1" target="_blank" rel="noopener">เปิดรูปขนาดเต็ม</a><br/>
+                <img src="@Url.Action("Image","MemberDocuments",new{area="",customerId=Model,kind=item.Item1})" alt="@item.Item2" loading="lazy" style="max-width:100%;width:380px;max-height:280px;object-fit:contain;border:1px solid #ddd"/>
+            </figure>
+        }
+    }
+</section>

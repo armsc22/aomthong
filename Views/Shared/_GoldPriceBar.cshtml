@@ -1,0 +1,37 @@
+@model IReadOnlyList<GoldPrice>
+<div class="price-ticker">
+    <div class="container">
+        <div class="price-ticker__inner">
+            <span class="price-ticker__label">
+                <partial name="_Icon" model="@("bar")" />
+                ราคาทองวันนี้
+            </span>
+
+            <div class="price-ticker__viewport" tabindex="0" aria-label="ราคาทอง เลื่อนเมาส์หรือโฟกัสเพื่อหยุดตัววิ่ง">
+            <div class="price-ticker__track">
+            @for (var copy = 0; copy < 2; copy++) {
+            <div class="price-ticker__items" aria-hidden="@(copy == 1 ? "true" : null)">
+                @foreach (var price in Model)
+                {
+                    <div class="price-ticker__item">
+                        <span class="price-ticker__name">@price.Label</span>
+                        <span class="price-ticker__values">
+                            <span>รับซื้อ <b>@price.Buy.ToBahtShort()</b></span>
+                            <span>ขายออก <b>@price.Sell.ToBahtShort()</b></span>
+                        </span>
+                        <span class="price-ticker__change @(price.Change >= 0 ? "is-up" : "is-down")">
+                            @price.Change.ToSigned()
+                        </span>
+                    </div>
+                }
+            <span class="price-ticker__updated">
+                <partial name="_Icon" model="@("clock")" />
+                @Model.FirstOrDefault()?.UpdatedAt
+            </span>
+            </div>
+            }
+            </div>
+            </div>
+        </div>
+    </div>
+</div>

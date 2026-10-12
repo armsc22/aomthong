@@ -1,0 +1,172 @@
+@model AdminDepositViewModel
+@{
+    ViewData["Title"] = "ระบบบัญชีเงินฝาก";
+    var lastEntry = Model.Summary.Entries.LastOrDefault();
+}
+
+<input type="hidden" id="customer-id" value="@Model.Customer.Id" />
+@Html.AntiForgeryToken()
+
+<section class="workspace">
+    <aside class="panel">
+        <div class="panel-title">ประเภท (ST)</div>
+        <div class="operation-list">
+            <label><input type="radio" name="operation" value="1" checked> 1.ฝากเงิน (F1)</label>
+            <label><input type="radio" name="operation" value="2"> 2.ถอนเงิน (F2)</label>
+            <label><input type="radio" name="operation" value="3" disabled> 3.รับเงินจ่าย (F3)</label>
+            <label><input type="radio" name="operation" value="4" disabled> 4.คิดดอกเบี้ย (F4)</label>
+            <label><input type="radio" name="operation" value="5" disabled> 5.ปิดบัญชีเงินฝาก (F5)</label>
+            <label><input type="radio" name="operation" value="6" disabled> 6.เปิดบัญชีสัญญาฝาก (F6)</label>
+        </div>
+    </aside>
+
+    <section class="panel">
+        <div class="panel-title">ข้อมูลบัญชีเงินฝาก / เงินกู้</div>
+        <div class="fields">
+            <label for="account">เลขที่บัญชี</label>
+            <div class="field-button">
+                <input class="field" id="account" value="@Model.Account.AccountNumber">
+                <button class="lookup" type="button" title="ค้นหาจาก Core DB">...</button>
+            </div>
+            <label for="transaction">เลขที่ทำรายการ</label>
+            <input class="field" id="transaction" value="@Model.TransactionNo">
+
+            <label for="account-name">ชื่อบัญชี</label>
+            <input class="field" id="account-name" value="@Model.Customer.FullName">
+            <label for="date">วันที่</label>
+            <input class="field" id="date" value="@Model.TodayThai">
+
+            <label for="citizen">เลขบัตรประชาชน<br>/เลขที่หนังสือเดินทาง</label>
+            <div class="field-button">
+                <input class="field" id="citizen" value="@Model.Customer.CitizenId">
+                <button class="lookup" type="button" title="ค้นหาจาก Core DB">...</button>
+            </div>
+            <label for="interest">อัตราดอกเบี้ย</label>
+            <div class="field-button">
+                <input class="field" id="interest" value="@Model.Account.InterestRate.ToString("0.00")">
+                <span class="currency">% / ปี</span>
+            </div>
+
+            <label for="member">รหัสสมาชิก</label>
+            <input class="field" id="member" value="@Model.Customer.MemberCode">
+            <label for="full-name">ชื่อ-นามสกุล</label>
+            <input class="field" id="full-name" value="@Model.Customer.FullName">
+
+            <label for="deposit-type">ประเภทเงินฝาก</label>
+            <div class="field-button">
+                <input class="field" id="deposit-type" value="@Model.Account.DepositTypeCode">
+                <input class="field" id="deposit-type-name" value="@Model.Account.DepositTypeName">
+            </div>
+            <label for="reference">เอกสารอ้างอิง</label>
+            <input class="field" id="reference">
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-title">ยอดเงินและรายการ</div>
+        <div class="amounts">
+            <label for="balance">ยอดเงินคงเหลือ</label>
+            <input class="field balance" id="balance" value="@Model.Summary.PrincipalBalance.ToString("N2")">
+            <span class="currency">บาท</span>
+
+            <label for="transaction-amount">ยอดเงินทำรายการ</label>
+            <input class="field" id="transaction-amount" value="0.00">
+            <span class="currency">บาท</span>
+
+            <label for="fee">ค่าธรรมเนียม/ค่าปรับ</label>
+            <input class="field" id="fee" value="0.00" readonly title="ยังไม่รองรับค่าธรรมเนียม" />
+            <span class="currency">บาท</span>
+
+            <label for="total">ยอดเงินรวม</label>
+            <input class="field" id="total" value="0.00">
+            <span class="currency">บาท</span>
+
+            <label for="current">ยอดเงินปัจจุบัน</label>
+            <input class="field" id="current" value="@Model.Summary.TotalBalance.ToString("N2")">
+            <span class="currency">บาท</span>
+
+            <label for="daily-dividend">ปันผลรายวัน (@Model.AnnualDividendPercent.ToString("0.0")% / ปี)</label>
+            <input class="field balance" id="daily-dividend" data-annual-rate="@Model.AnnualDividendPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)" value="@Model.DailyDividend.ToString("N4")" readonly>
+            <span class="currency">บาท/วัน</span>
+
+            <button class="primary-btn" id="add-transaction" type="button">ลงสมุด</button>
+        </div>
+    </section>
+
+    <aside class="panel photo-rail" aria-label="ข้อมูลสมาชิก">
+        <div class="photo large">NO PHOTO</div>
+        <div class="photo">♟</div>
+        <div class="photo">✎ ♟</div>
+    </aside>
+</section>
+
+<section class="table-card">
+    <div class="table-title">ตารางการฝาก-ถอนเงิน</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 65px">ลำดับ</th>
+                    <th style="width: 125px">วันที่</th>
+                    <th>ฝากเงิน</th>
+                    <th>ถอนเงิน</th>
+                    <th>ดอกเบี้ย</th>
+                    <th>คงเหลือ</th>
+                    <th style="width: 48px">St</th>
+                    <th style="width: 50px">P</th>
+                </tr>
+            </thead>
+            <tbody id="ledger">
+                @foreach (var entry in Model.Summary.Entries)
+                {
+                    <tr class="@(entry.Seq == lastEntry?.Seq ? "selected" : "")">
+                        <td>@entry.Seq</td>
+                        <td>@entry.Date.ToThaiDate()</td>
+                        <td>@entry.Deposit.ToString("N2")</td>
+                        <td>@entry.Withdrawal.ToString("N2")</td>
+                        <td>@entry.Interest.ToString("N2")</td>
+                        <td>@entry.BalanceAfter.ToString("N2")</td>
+                        <td>@entry.Status</td>
+                        <td><input class="check" type="checkbox" checked="@entry.Printed"></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="total-row">
+        <div>จำนวนเงินรวม</div>
+        <div id="sum-deposit">@Model.Summary.TotalDeposit.ToString("N2")</div>
+        <div id="sum-withdraw">@Model.Summary.TotalWithdrawal.ToString("N2")</div>
+        <div id="sum-interest">@Model.Summary.TotalInterest.ToString("N2")</div>
+        <div id="sum-balance">@Model.Summary.TotalBalance.ToString("N2")</div>
+        <div>บันทึกกดปุ่ม F10</div>
+    </div>
+</section>
+
+<section class="bottom-bar">
+    <div class="status">
+        <strong>สถานะ</strong><br>
+        <label><input type="radio" name="status" checked> ใช้งาน</label>
+        <label><input type="radio" name="status"> ยกเลิก</label>
+    </div>
+    <div class="button-row">
+        <button class="bottom-button" type="button">พิมพ์ปรับรับฝาก-ถอน</button>
+        <button class="bottom-button" type="button">พิมพ์สมุดฝากเงิน (F9)</button>
+        <button class="bottom-button" type="button">พิมพ์ใบฝาก-ถอน</button>
+        <button class="bottom-button" type="button">พิมพ์สรุป</button>
+    </div>
+    <div class="footer-fields">
+        <label for="branch">สาขาที่บันทึก</label>
+        <input class="field" id="branch" value="@Model.Branch">
+        <label for="user">ผู้บันทึก</label>
+        <input class="field" id="user" value="@Model.RecordedBy">
+    </div>
+    <div class="footer-fields">
+        <label for="institution">สถาบันการเงิน</label>
+        <input class="field" id="institution" value="@Model.Institution">
+        <label for="institution-user">&nbsp;</label>
+        <input class="field" id="institution-user" value="@Model.RecordedBy">
+    </div>
+</section>
+
+

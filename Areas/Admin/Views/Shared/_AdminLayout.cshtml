@@ -1,0 +1,64 @@
+@inject ShopSettings Shop
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "ระบบหลังบ้าน") - @Shop.ShopNameEn</title>
+    <link rel="icon" type="image/png" href="~/img/logo.png" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand">
+                <img class="brand-mark" src="~/img/logo.png" alt="" width="43" height="43" />
+                <span>ระบบบัญชีทองคำ</span>
+            </div>
+            <nav class="top-actions" aria-label="เมนูหลัก">
+                <button class="top-action active" type="button" data-action="เพิ่ม"><span class="icon">📦</span><span>เพิ่ม</span></button>
+                <button class="top-action" type="button" data-action="ค้นหา"><span class="icon">🔎</span><span>ค้นหา</span></button>
+                <button class="top-action" type="button" data-action="ยกเลิก"><span class="icon">📄</span><span>ยกเลิก</span></button>
+                <button class="top-action" type="button" data-action="บันทึก"><span class="icon">💾</span><span>บันทึก</span></button>
+                <button class="top-action" type="button" data-action="สมัครสมาชิก"><span class="icon">👤</span><span>สมัครสมาชิก</span></button>
+                <a class="top-action" asp-area="Admin" asp-controller="Customers" asp-action="Index"><span class="icon">👥</span><span>แสดงรายชื่อลูกค้าทั้งหมด</span></a>
+                <a class="top-action" asp-area="" asp-controller="Checkout" asp-action="Slips"><span>สลิปรอตรวจสอบ</span></a>
+                <a class="top-action" asp-controller="Home" asp-action="Index" asp-area=""><span class="icon">🏬</span><span>หน้าร้าน</span></a>
+                <form asp-area="Admin" asp-controller="Access" asp-action="Logout" method="post"><button class="top-action" type="submit">ออกจากระบบ</button></form>
+            </nav>
+            @if (ViewContext.RouteData.Values["controller"]?.ToString() == "Deposit")
+            {
+                <button class="logout" type="button" id="identity-button">อ่านบัตรประชาชน</button>
+                <span class="core-status" id="core-status">กำลังเชื่อมต่อ Core DB</span>
+            }
+        </header>
+
+        <main>
+            <div class="admin-clock-bar">
+                <div class="admin-clock-heading"><span>วันและเวลาประเทศไทย</span><span id="admin-clock-date"></span></div>
+                <time id="admin-clock" aria-label="เวลาปัจจุบันประเทศไทย"></time>
+            </div>
+            <nav class="teller-nav" aria-label="พื้นที่ทำงาน Teller">
+                @if(User.IsInRole("Owner")){
+                    <a asp-area="Admin" asp-controller="Operations" asp-action="Staff">พนักงาน / สิทธิ์</a>
+                    <a asp-area="Admin" asp-controller="Operations" asp-action="Timeline">Timeline</a>
+                }
+                <a asp-area="Admin" asp-controller="Workspace" asp-action="Index">ภาพรวม</a>
+                <a asp-area="Admin" asp-controller="Customers" asp-action="Index">ลูกค้า</a>
+                <a asp-area="Admin" asp-controller="Deposit" asp-action="Index">ฝาก–ถอน</a>
+                <a asp-area="Admin" asp-controller="Workspace" asp-action="Accounts">บัญชีออมทอง / รายงานยอด</a>
+                <a asp-area="Admin" asp-controller="Workspace" asp-action="Inventory">รายการสินค้า</a>
+                <a asp-area="" asp-controller="Checkout" asp-action="Slips">สลิปรอตรวจสอบ</a>
+                <a asp-area="" asp-controller="Savings" asp-action="Review">สลิปออมทอง</a>
+            </nav>
+            @RenderBody()
+        </main>
+    </div>
+    <script src="~/js/admin-clock.js" asp-append-version="true"></script>
+    @if (ViewContext.RouteData.Values["controller"]?.ToString() == "Deposit")
+    {
+        <script src="~/js/admin.js" asp-append-version="true"></script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

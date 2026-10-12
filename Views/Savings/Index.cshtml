@@ -1,0 +1,16 @@
+@model IReadOnlyList<SavingsRequest>
+@{ViewData["Title"]="แจ้งฝากออมทอง";}
+<section class="section"><div class="container container--narrow">
+<h1>แจ้งฝากออมทอง</h1><p>บัญชีออมทอง: @ViewData["AccountNumber"]</p><p>ยอดเงินจะเข้าบัญชีหลังเจ้าหน้าที่ตรวจสอบและอนุมัติแล้ว</p>
+@if(TempData["SavingsMessage"] is string message){<p role="status">@message</p>}
+<form asp-action="Submit" method="post" enctype="multipart/form-data" class="account-card account-form">
+<input type="hidden" name="id" value="@ViewData["SubmissionId"]"/>
+<label>จำนวนเงินฝาก (บาท)<input type="number" name="amount" min="0.01" max="1000000000" step="0.01" required /></label>
+<label>สลิปโอนเงิน JPG / PNG ไม่เกิน 5 MB<input type="file" name="slip" accept="image/jpeg,image/png" required /></label>
+<button type="submit" class="btn-gold">ส่งสลิปแจ้งฝากออมทอง</button></form>
+<h2>ประวัติแจ้งฝาก</h2>
+@foreach(var row in Model){<article class="account-card" style="margin:16px 0"><p>เลขที่รายการ: @row.DisplayNumber</p><strong>@row.Amount.ToBaht()</strong><p>@(row.Status=="Approved"?"ชำระเรียบร้อย":row.Status=="Rejected"?"ไม่อนุมัติ":"ตรวจสอบ : รอผล")</p><p>@row.Note</p>
+@if(row.Status=="Approved"){<a asp-action="Receipt" asp-route-id="@row.Id">ใบรับเงินมัดจำ @row.ReceiptNumber</a>}
+@if(row.Status is "Pending" or "Approved"){<form asp-action="RetryMessage" method="post"><input type="hidden" name="id" value="@row.Id"/><button type="submit" class="btn-ghost">ส่ง LINE อีกครั้งหากยังไม่สำเร็จ</button></form>}
+</article>}
+<a asp-controller="Account" asp-action="Index">กลับบัญชีของฉัน</a></div></section>

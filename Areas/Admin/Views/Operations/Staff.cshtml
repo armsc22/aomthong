@@ -1,0 +1,9 @@
+@model IReadOnlyList<StaffInfo>
+@{ViewData["Title"]="บัญชีพนักงาน";}
+<section class="teller-workspace"><h1>บัญชีพนักงานและสิทธิ์</h1>
+@if(TempData["StaffMessage"] is string message){<p role="status">@message</p>}
+<p>เจ้าของระบบ: จัดการพนักงานและดู Timeline · พนักงาน: ทำรายการและตรวจสลิป · ผู้ดู: ดูข้อมูลอย่างเดียว</p>
+<form asp-action="CreateStaff" method="post"><label>ชื่อผู้ใช้ <input name="username" pattern="[a-zA-Z0-9._-]{3,40}" maxlength="40" required/></label><label>รหัสผ่าน (12–128 ตัวอักษร)<input name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required/></label><label>สิทธิ์<select name="role"><option value="Owner">เจ้าของระบบ</option><option value="Operator">พนักงาน</option><option value="Viewer">ผู้ดูอย่างเดียว</option></select></label><button type="submit">สร้างบัญชี</button></form>
+<div class="teller-table"><table><thead><tr><th>ชื่อผู้ใช้</th><th>สิทธิ์</th><th>สถานะ</th><th>เปลี่ยนสถานะ</th></tr></thead><tbody>
+@foreach(var row in Model){<tr><td>@row.Username</td><td>@row.Role</td><td>@(row.Active?"เปิดใช้งาน":"ระงับ")</td><td><form asp-action="SetActive" method="post"><input type="hidden" name="id" value="@row.Id"/><input type="hidden" name="active" value="@(!row.Active ? "true" : "false")"/><button>@(row.Active?"ระงับบัญชี":"เปิดใช้งาน")</button></form></td></tr>}
+</tbody></table></div></section>

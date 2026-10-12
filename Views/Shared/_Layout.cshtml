@@ -1,0 +1,172 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"] as string ?? "";
+    var currentCategory = ViewContext.RouteData.Values["category"] as string
+                            ?? ViewContext.RouteData.Values["id"] as string;
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] is null ? Shop.ShopNameEn : $"{ViewData["Title"]} - {Shop.ShopNameEn}")</title>
+    <meta name="description" content="@Shop.ShopNameEn — @Shop.Tagline" />
+    <link rel="icon" type="image/png" href="~/img/logo.png" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main">ข้ามไปยังเนื้อหาหลัก</a>
+
+    <div class="topbar">
+        <div class="container topbar__inner">
+            <span class="topbar__item">
+                <partial name="_Icon" model="@("phone")" />
+                สายด่วน @Shop.Hotline
+            </span>
+            <span class="topbar__item topbar__item--hide-sm">
+                <partial name="_Icon" model="@("truck")" />
+                ส่งฟรีเมื่อสั่ง @Shop.FreeShippingThreshold.ToBaht() ขึ้นไป
+            </span>
+            <span class="topbar__spacer"></span>
+            <a class="topbar__item topbar__item--hide-sm" href="#">
+                <partial name="_Icon" model="@("line")" />
+                LINE @Shop.LineId
+            </a>
+            <a class="topbar__item topbar__item--hide-sm" href="#">
+                <partial name="_Icon" model="@("facebook")" />
+                Facebook
+            </a>
+            <a class="topbar__item topbar__item--admin" asp-area="Admin" asp-controller="Deposit" asp-action="Index">
+                <partial name="_Icon" model="@("user")" />
+                ระบบหลังบ้าน
+            </a>
+        </div>
+    </div>
+
+    <partial name="_GoldPriceBar" model="ShopCatalog.GoldPrices()" />
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <img class="brand__logo" src="~/img/logo.png" alt="โลโก้ @Shop.ShopNameEn" width="56" height="56" />
+                <span class="brand__text">
+                    <strong>@Shop.ShopNameEn</strong>
+                    <small>@Shop.ShopName · @Shop.Tagline</small>
+                </span>
+            </a>
+
+            <form class="search" asp-controller="Products" asp-action="Index" method="get" role="search">
+                <input type="search" name="search" placeholder="ค้นหาทองแท่ง สร้อยคอ แหวน เพชร ..."
+                       aria-label="ค้นหาสินค้า" />
+                <button type="submit" aria-label="ค้นหา">
+                    <partial name="_Icon" model="@("search")" />
+                </button>
+            </form>
+
+            <div class="header-actions">
+                <a class="header-action header-action--hide-sm" asp-controller="Home" asp-action="Contact">
+                    <partial name="_Icon" model="@("pin")" />
+                    <span>สาขา</span>
+                </a>
+                <a class="header-action header-action--hide-sm"
+                   asp-controller="Account" asp-action="@(AccountSvc.IsSignedIn ? "Index" : "Login")">
+                    <partial name="_Icon" model="@("user")" />
+                    <span>@(AccountSvc.IsSignedIn ? "บัญชีของฉัน" : "เข้าสู่ระบบ")</span>
+                </a>
+                <a class="header-action header-action--cart" asp-controller="Cart" asp-action="Index">
+                    <partial name="_Icon" model="@("cart")" />
+                    <span class="cart-badge" aria-label="จำนวนสินค้าในตะกร้า">@CartSvc.Count()</span>
+                    <span class="header-action__label">ตะกร้า</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="main-nav" aria-label="หมวดหมู่สินค้า">
+        <div class="container main-nav__inner">
+            <a class="main-nav__link @(currentController == "Products" && currentCategory is null ? "is-active" : "")"
+               asp-controller="Products" asp-action="Index">
+                <partial name="_Icon" model="@("sparkle")" />
+                สินค้าทั้งหมด
+            </a>
+            @foreach (var category in ShopCatalog.Categories)
+            {
+                <a class="main-nav__link @(currentCategory == category.Slug ? "is-active" : "")"
+                   asp-controller="Products" asp-action="Index" asp-route-category="@category.Slug">
+                    <partial name="_Icon" model="@category.Icon" />
+                    @category.Name
+                </a>
+            }
+            <a class="main-nav__link main-nav__link--savings @(currentController == "Home" && ViewContext.RouteData.Values["action"] as string == "Savings" ? "is-active" : "")"
+               asp-controller="Home" asp-action="Savings">
+                <partial name="_Icon" model="@("shield")" />
+                โปรแกรมออมทอง
+            </a>
+        </div>
+    </nav>
+
+    <main id="main" class="site-main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer__grid">
+            <div class="site-footer__col">
+                <div class="brand brand--footer">
+                    <img class="brand__logo" src="~/img/logo.png" alt="" width="48" height="48" />
+                    <span class="brand__text">
+                        <strong>@Shop.ShopNameEn</strong>
+                        <small>@Shop.ShopName</small>
+                    </span>
+                </div>
+                <p class="site-footer__note">@Shop.Tagline</p>
+                <p class="site-footer__note">
+                    <partial name="_Icon" model="@("clock")" />
+                    @Shop.OpeningHours
+                </p>
+            </div>
+
+            <div class="site-footer__col">
+                <h4>หมวดหมู่</h4>
+                <ul>
+                    @foreach (var category in ShopCatalog.Categories.Take(5))
+                    {
+                        <li>
+                            <a asp-controller="Products" asp-action="Index" asp-route-category="@category.Slug">@category.Name</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="site-footer__col">
+                <h4>บริการ</h4>
+                <ul>
+                    <li><a asp-controller="Home" asp-action="Savings">โปรแกรมออมทอง</a></li>
+                    <li><a asp-controller="Home" asp-action="Contact">ติดต่อ / สาขา</a></li>
+                    <li><a asp-controller="Home" asp-action="Privacy">นโยบายความเป็นส่วนตัว</a></li>
+                    <li><a asp-area="Admin" asp-controller="Deposit" asp-action="Index">ระบบหลังบ้าน</a></li>
+                </ul>
+            </div>
+
+            <div class="site-footer__col">
+                <h4>ติดต่อเรา</h4>
+                <ul class="site-footer__contact">
+                    <li><partial name="_Icon" model="@("pin")" /> @Shop.Address</li>
+                    <li><partial name="_Icon" model="@("phone")" /> @Shop.Phone @if (!string.IsNullOrWhiteSpace(Shop.Hotline) && Shop.Hotline != Shop.Phone) { <span>, @Shop.Hotline</span> }</li>
+                    <li><partial name="_Icon" model="@("mail")" /> @Shop.Email</li>
+                    <li><partial name="_Icon" model="@("line")" /> @Shop.LineId</li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer__base">
+            <div class="container">
+                &copy; @DateTime.Now.Year @Shop.ShopNameEn — เว็บไซต์ตัวอย่างเพื่อการจัดวางโครงสร้าง ยังไม่เชื่อมต่อฐานข้อมูลจริง
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

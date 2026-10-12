@@ -1,0 +1,54 @@
+@model CashSale
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ตัวอย่างใบเสร็จรับเงิน — ยังไม่ออกเอกสาร</title>
+    <link rel="stylesheet" href="~/css/receipt.css" asp-append-version="true" />
+</head>
+<body class="receipt-page">
+    <nav class="receipt-toolbar">
+        <a asp-area="Admin" asp-controller="Sales" asp-action="Create" asp-route-customerId="@Model.CustomerId">กลับรายการซื้อของลูกค้า</a>
+        <button type="button" onclick="window.print()">พิมพ์ / บันทึก PDF</button>
+    </nav>
+    <main class="receipt-sheet">
+        <p class="receipt-draft">ตัวอย่างโครงเอกสาร · ยังไม่บันทึกการขายหรือรับชำระเงิน</p>
+        <header class="receipt-header">
+            <div class="receipt-brand">
+                <img src="~/img/logo.png" alt="โลโก้ร้าน" />
+                <div><h2>@Model.ShopName</h2><p>@Model.ShopAddress</p><p>โทร: @Model.ShopPhone</p></div>
+            </div>
+            <div class="receipt-title"><h1>ใบเสร็จรับเงิน</h1><span>CASH RECEIPT</span></div>
+        </header>
+        <dl class="receipt-details">
+            <div><dt>เลขที่เอกสาร (Document No.)</dt><dd>@Model.DocumentNumber</dd></div>
+            <div><dt>ลูกค้า (Customer)</dt><dd>@Model.CustomerName</dd></div>
+            <div><dt>ตัวอย่างรูปแบบรหัสลูกค้า (Member Code)</dt><dd>@Model.MemberCode</dd></div>
+            <div><dt>วันที่ (Date) · เวลาไทย</dt><dd>@Model.IssuedAt.ToThaiDate() @Model.IssuedAt.ToString("HH:mm:ss")</dd></div>
+            <div><dt>ติดต่อ (Contact)</dt><dd>@(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)</dd></div>
+            <div><dt>วิธีชำระ (Payment)</dt><dd>เงินสด · ยังไม่ยืนยันรับเงิน</dd></div>
+            <div class="receipt-wide"><dt>ที่อยู่ (Address)</dt><dd>@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</dd></div>
+        </dl>
+        <table class="receipt-items">
+            <thead><tr><th>รายการสินค้า (Description)</th><th>จำนวน</th><th class="amount">จำนวนเงิน (THB)</th></tr></thead>
+            <tbody>
+                @if (Model.Lines.Count == 0)
+                {
+                    <tr><td>รายการสินค้าจะแสดงเมื่อเชื่อมขั้นตอนการขาย</td><td>—</td><td class="amount">—</td></tr>
+                }
+                @foreach (var line in Model.Lines)
+                {
+                    <tr><td>@(string.IsNullOrWhiteSpace(line.Sku) ? "" : $"[{line.Sku}] ")@line.Name</td><td>@line.Quantity</td><td class="amount">@line.Total.ToString("N2")</td></tr>
+                }
+            </tbody>
+        </table>
+        <section class="receipt-totals">
+            <div><span>รวมเป็นเงิน</span><span>@Model.Total.ToString("N2") บาท</span></div>
+            <div class="net"><span>ยอดสุทธิ (Net Total)</span><span>@Model.Total.ToString("N2") บาท</span></div>
+            <div><span>สถานะ</span><span>ตัวอย่างเท่านั้น</span></div>
+        </section>
+        <footer class="receipt-footer"><strong>ขอบคุณที่ไว้วางใจ @Model.ShopName</strong><p>ตัวอย่างรูปแบบใบเสร็จ ไม่ใช่เอกสารยืนยันการรับเงิน เลขลงท้าย 0000 เป็นตัวอย่างรูปแบบเท่านั้น</p></footer>
+    </main>
+</body>
+</html>

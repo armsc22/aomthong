@@ -1,0 +1,45 @@
+@model IReadOnlyList<CustomerBalance>
+@inject ShopSettings Shop
+@{
+    ViewData["Title"] = "บัญชีออมทอง";
+    var rate = Shop.SavingsAnnualDividendPercent;
+    var number = 0;
+    var totalDeposit = Model.Sum(row => row.DepositBalance);
+    var totalDividend = Model.Sum(row => SavingsRules.DailyDividend(row.DepositBalance, rate));
+}
+<section class="teller-workspace">
+    <h1>บัญชีออมทอง</h1>
+    <div class="teller-table">
+        <table class="customers-table">
+            <caption>ยอดเงินฝากคงเหลือและปันผลประมาณการต่อวัน (บาท)</caption>
+            <thead><tr>
+                <th scope="col">ที่</th>
+                <th scope="col">เลขที่ Member Code</th>
+                <th scope="col">เลขที่สัญญา</th>
+                <th scope="col">ชื่อ-นามสกุล</th>
+                <th scope="col">จำนวนเงินฝาก</th>
+                <th scope="col">ปันผล @rate.ToString("0.0")%/ปี<br/><small>จำนวนเงินต่อวัน</small></th>
+                <th scope="col">รวมเงิน<br/><small>เงินฝาก + ปันผลหนึ่งวัน</small></th>
+            </tr></thead>
+            <tbody>
+            @foreach(var row in Model)
+            {
+                var dividend = SavingsRules.DailyDividend(row.DepositBalance, rate);
+                <tr>
+                    <td>@(++number)</td><td>@row.MemberCode</td>
+                    <td>@(string.IsNullOrWhiteSpace(row.ContractNumber) ? "—" : row.ContractNumber)</td>
+                    <td><a asp-controller="Deposit" asp-action="Index" asp-route-customerId="@row.CustomerId">@row.FullName</a></td>
+                    <td class="money">@row.DepositBalance.ToString("N2")</td>
+                    <td class="money">@dividend.ToString("N4")</td>
+                    <td class="money">@((row.DepositBalance + dividend).ToString("N4"))</td>
+                </tr>
+            }
+            @if(Model.Count == 0){<tr><td colspan="7">ยังไม่มีบัญชีออมทองในระบบ</td></tr>}
+            </tbody>
+            <tfoot><tr><th scope="row" colspan="4">รวมทั้งหมด</th><td class="money">@totalDeposit.ToString("N2")</td><td class="money">@totalDividend.ToString("N4")</td><td class="money">@((totalDeposit+totalDividend).ToString("N4"))</td></tr></tfoot>
+        </table>
+    </div>
+    <p>ปันผลต่อวัน = เงินฝากคงเหลือ × @rate.ToString("0.0")% ÷ 365 เช่น 1,000 บาท ได้ @SavingsRules.DailyDividend(1000m,rate).ToString("N4") บาทต่อวัน</p>
+    <p>เลขที่สัญญาแสดงเลขบัญชีออมทองอ้างอิงระหว่างรอเพิ่มรูปแบบสัญญา เงินฝากเป็นยอดคงเหลือหลังหักถอนแล้ว</p>
+    <p>ปันผลและรวมเงินเป็นยอดประมาณการ ยังไม่ได้เพิ่มปันผลเข้าบัญชี กดชื่อสมาชิกเพื่อดูประวัติฝาก–ถอน</p>
+</section>

@@ -1,0 +1,105 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = Model.ActiveCategory is null ? "สินค้าทั้งหมด" : Model.ActiveCategory.Name;
+}
+
+<section class="page-hero page-hero--compact">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="เส้นทาง">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <a asp-controller="Products" asp-action="Index">สินค้า</a>
+            @if (Model.ActiveCategory is not null)
+            {
+                <partial name="_Icon" model="@("chevron-right")" />
+                <span>@Model.ActiveCategory.Name</span>
+            }
+        </nav>
+        <h1>@ViewData["Title"]</h1>
+        <p>
+            @if (Model.ActiveCategory is not null)
+            {
+                @Model.ActiveCategory.Tagline
+            }
+            else
+            {
+                @:รวมทองแท่ง ทองรูปพรรณ เพชร และของขวัญมงคลทุกรายการ
+            }
+        </p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container listing">
+        <aside class="listing__side">
+            <div class="filter-card">
+                <h3>หมวดหมู่</h3>
+                <ul class="filter-list">
+                    <li>
+                        <a class="@(Model.Category is null ? "is-active" : "")"
+                           asp-controller="Products" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort">
+                            ทั้งหมด <span>@ShopCatalog.Products.Count</span>
+                        </a>
+                    </li>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <li>
+                            <a class="@(Model.Category == category.Slug ? "is-active" : "")"
+                               asp-controller="Products" asp-action="Index" asp-route-category="@category.Slug"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort">
+                                @category.Name <span>@ShopCatalog.ByCategory(category.Id).Count</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="filter-card">
+                <h3>ค้นหา</h3>
+                <form asp-controller="Products" asp-action="Index" method="get" class="filter-search">
+                    <input type="hidden" name="category" value="@Model.Category" />
+                    <input type="hidden" name="sort" value="@Model.Sort" />
+                    <input class="field" type="search" name="search" value="@Model.Search" placeholder="คำค้นหา ..." />
+                    <button class="btn-gold btn-gold--block" type="submit">ค้นหา</button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="listing__main">
+            <div class="listing__bar">
+                <span class="listing__count">พบ @Model.Products.Count รายการ</span>
+                <form class="listing__sort" asp-controller="Products" asp-action="Index" method="get">
+                    <input type="hidden" name="category" value="@Model.Category" />
+                    <input type="hidden" name="search" value="@Model.Search" />
+                    <label for="sort">เรียงตาม</label>
+                    <select class="field" id="sort" name="sort" onchange="this.form.submit()">
+                        <option value="popular" selected="@(Model.Sort == "popular")">แนะนำ</option>
+                        <option value="newest" selected="@(Model.Sort == "newest")">ใหม่ล่าสุด</option>
+                        <option value="price-asc" selected="@(Model.Sort == "price-asc")">ราคาน้อยไปมาก</option>
+                        <option value="price-desc" selected="@(Model.Sort == "price-desc")">ราคามากไปน้อย</option>
+                        <option value="name" selected="@(Model.Sort == "name")">ชื่อ ก-ฮ</option>
+                    </select>
+                </form>
+            </div>
+
+            @if (Model.Products.Count == 0)
+            {
+                <div class="empty-state">
+                    <partial name="_Icon" model="@("search")" />
+                    <strong>ไม่พบสินค้าที่ตรงเงื่อนไข</strong>
+                    <p>ลองเปลี่ยนคำค้นหาหรือเลือกหมวดหมู่อื่น</p>
+                    <a class="btn-gold" asp-controller="Products" asp-action="Index">ดูสินค้าทั้งหมด</a>
+                </div>
+            }
+            else
+            {
+                <div class="product-grid">
+                    @foreach (var product in Model.Products)
+                    {
+                        <partial name="_ProductCard" model="product" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>

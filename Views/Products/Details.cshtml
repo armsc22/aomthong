@@ -1,0 +1,127 @@
+@model ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Product.Name;
+    var product = Model.Product;
+}
+
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="เส้นทาง">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <a asp-controller="Products" asp-action="Index">สินค้า</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <a asp-controller="Products" asp-action="Index" asp-route-category="@Model.Category.Slug">@Model.Category.Name</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <span>@product.Name</span>
+        </nav>
+
+        <div class="detail">
+            <div class="detail__media">
+                <img src="@product.Image" alt="@product.Name" />
+                <span class="detail__badges">
+                    @if (product.DiscountPercent > 0)
+                    {
+                        <span class="badge badge--sale">-@product.DiscountPercent.ToString("0")%</span>
+                    }
+                    @if (product.IsNew)
+                    {
+                        <span class="badge badge--new">ใหม่</span>
+                    }
+                    @if (product.IsBestSeller)
+                    {
+                        <span class="badge badge--hot">ขายดี</span>
+                    }
+                </span>
+            </div>
+
+            <div class="detail__info">
+                <p class="detail__category">@Model.Category.Name</p>
+                <h1>@product.Name</h1>
+                <p class="detail__desc">@product.ShortDescription</p>
+
+                <div class="detail__price">
+                    @if (product.OldPrice is > 0)
+                    {
+                        <span class="price-block__old">@product.OldPrice.Value.ToBaht()</span>
+                    }
+                    <span class="price-block__now price-block__now--lg">@product.Price.ToBaht()</span>
+                </div>
+
+                <dl class="detail__specs">
+                    <div><dt>น้ำหนัก</dt><dd>@product.Weight</dd></div>
+                    <div><dt>ความบริสุทธิ์</dt><dd>@product.Purity</dd></div>
+                    <div><dt>รหัสสินค้า (SKU)</dt><dd>@(string.IsNullOrEmpty(product.Sku) ? product.Slug : product.Sku)</dd></div>
+                    @if (product.CraftingFee > 0)
+                    {
+                        <div><dt>@(product.CategoryId == 1 ? "ค่าบล็อก" : "ค่ากำเหน็จ")</dt><dd>@product.CraftingFee.ToBaht()</dd></div>
+                    }
+                    <div>
+                        <dt>สถานะ</dt>
+                        <dd>
+                            @if (product.InStock)
+                            {
+                                <span class="stock stock--in">มีสินค้า (@product.Stock ชิ้น)</span>
+                            }
+                            else
+                            {
+                                <span class="stock stock--out">สินค้าหมดชั่วคราว</span>
+                            }
+                        </dd>
+                    </div>
+                </dl>
+
+                <form class="detail__buy" asp-controller="Cart" asp-action="Add" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@product.Id" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <div class="qty">
+                        <button type="button" class="qty__btn" data-qty="dec" aria-label="ลดจำนวน">
+                            <partial name="_Icon" model="@("minus")" />
+                        </button>
+                        <input id="qty" name="quantity" type="number" value="1" min="1" max="@product.Stock" aria-label="จำนวน" />
+                        <button type="button" class="qty__btn" data-qty="inc" aria-label="เพิ่มจำนวน">
+                            <partial name="_Icon" model="@("plus")" />
+                        </button>
+                    </div>
+                    <button class="btn-gold" type="submit" disabled="@(!product.InStock)">
+                        <partial name="_Icon" model="@("cart")" />
+                        เพิ่มลงตะกร้า
+                    </button>
+                    <a class="btn-ghost" asp-controller="Home" asp-action="Contact">สอบถามเพิ่มเติม</a>
+                </form>
+
+                <ul class="detail__assure">
+                    <li><partial name="_Icon" model="@("shield")" /> ทองแท้ รับประกันตามใบรับรอง</li>
+                    <li><partial name="_Icon" model="@("refresh")" /> รับซื้อคืนตามราคาประกาศสมาคม</li>
+                    <li><partial name="_Icon" model="@("truck")" /> จัดส่งประกันเต็มวงเงิน</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="detail__body">
+            <h2>รายละเอียดสินค้า</h2>
+            <p>@product.Description</p>
+        </div>
+    </div>
+</section>
+
+@if (Model.Related.Count > 0)
+{
+    <section class="section section--tint">
+        <div class="container">
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">สินค้าที่เกี่ยวข้อง</h2>
+                    <p class="section__sub">รายการอื่นในหมวด @Model.Category.Name</p>
+                </div>
+            </div>
+            <div class="product-grid">
+                @foreach (var related in Model.Related)
+                {
+                    <partial name="_ProductCard" model="related" />
+                }
+            </div>
+        </div>
+    </section>
+}

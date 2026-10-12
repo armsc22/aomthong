@@ -1,0 +1,109 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "บัญชีของฉัน";
+}
+
+<section class="section">
+    <div class="container">
+        <div class="account-head">
+            <div>
+                <p class="account-head__eyebrow">บัญชีสมาชิก</p>
+                <h1>สวัสดีครับ คุณ@Model.Customer.FirstName</h1>
+                <p class="account-head__meta">
+                    รหัสสมาชิก @Model.Customer.MemberCode
+                    @if (Model.Account is not null)
+                    {
+                        <span>· บัญชีออมทอง @Model.Account.AccountNumber</span>
+                    }
+                </p>
+            </div>
+            <div class="account-head__actions">
+                <a class="btn-ghost" asp-controller="Account" asp-action="Profile">แก้ไขโปรไฟล์</a>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="btn-ghost" type="submit">ออกจากระบบ</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="account-grid">
+            <article class="account-panel account-panel--wide">
+                <h2>สรุปบัญชีออมทอง</h2>
+                <p><a class="btn-gold" asp-controller="Savings" asp-action="Index">แจ้งฝากออมทอง / แนบสลิป</a></p>
+                <div class="stat-row">
+                    <div class="stat">
+                        <span class="stat__label">ยอดคงเหลือรวม</span>
+                        <span class="stat__value">@Model.Summary.TotalBalance.ToBaht()</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat__label">เงินต้น</span>
+                        <span class="stat__value">@Model.Summary.PrincipalBalance.ToBaht()</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat__label">ปันผลสะสม</span>
+                        <span class="stat__value">@Model.Summary.TotalInterest.ToBaht()</span>
+                    </div>
+                    <div class="stat stat--accent">
+                        <span class="stat__label">ปันผลรายวัน (@Model.AnnualDividendPercent.ToString("0.0")%/ปี)</span>
+                        <span class="stat__value">@Model.DailyDividend.ToString("N4") บาท</span>
+                    </div>
+                </div>
+
+                <h3>รายการล่าสุด</h3>
+                @if (Model.RecentEntries.Count == 0)
+                {
+                    <p class="account-empty">ยังไม่มีรายการในบัญชี</p>
+                }
+                else
+                {
+                    <table class="account-table">
+                        <thead>
+                            <tr><th>วันที่</th><th>ฝาก</th><th>ถอน</th><th>ปันผล</th><th>คงเหลือ</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.RecentEntries)
+                            {
+                                <tr>
+                                    <td>@entry.Date.ToThaiDate()</td>
+                                    <td>@entry.Deposit.ToBaht()</td>
+                                    <td>@entry.Withdrawal.ToBaht()</td>
+                                    <td>@entry.Interest.ToBaht()</td>
+                                    <td>@entry.BalanceAfter.ToBaht()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </article>
+
+            <aside class="account-panel">
+                <h2>ตะกร้าของฉัน</h2>
+                @if (Model.Cart.IsEmpty)
+                {
+                    <p class="account-empty">ยังไม่มีสินค้าในตะกร้า</p>
+                    <a class="btn-gold" asp-controller="Products" asp-action="Index">เลือกสินค้า</a>
+                }
+                else
+                {
+                    <ul class="account-cart">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <li>
+                                <img src="@item.Image" alt="" />
+                                <div>
+                                    <a href="@item.Url">@item.Name</a>
+                                    <span>@item.Quantity × @item.Price.ToBaht()</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                    <div class="account-cart__total">
+                        <span>รวม @Model.Cart.TotalQuantity ชิ้น</span>
+                        <strong>@Model.Cart.SubTotal.ToBaht()</strong>
+                    </div>
+                    <a class="btn-gold" asp-controller="Cart" asp-action="Index">จัดการตะกร้า</a>
+                }
+            </aside>
+        </div>
+    </div>
+</section>

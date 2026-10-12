@@ -1,0 +1,20 @@
+@model IReadOnlyList<CustomerBalance>
+@{ ViewData["Title"] = "ภาพรวมหลังบ้าน Teller"; }
+<section class="teller-workspace">
+<h1>พื้นที่ทำงาน Teller</h1><p>ข้อมูลจาก GoldShopWeb · ใช้บัญชีผู้ดูแลของระบบนี้</p>
+<div class="teller-cards">
+<article><h2>ลูกค้าทั้งหมด</h2><strong>@Model.Count คน</strong></article>
+<article><h2>ยอดคงเหลือออมทอง</h2><strong>@Model.Sum(x => x.DepositBalance).ToBaht()</strong></article>
+<article><h2>บัญชีออมทอง</h2><strong>@Model.Count(x => !string.IsNullOrEmpty(x.ContractNumber)) บัญชี</strong></article>
+</div>
+<div class="teller-cards">
+<a asp-controller="Customers" asp-action="Index"><h2>ลูกค้า</h2><p>รายชื่อ ยอดฝาก และตั้ง PIN สมาชิก</p></a>
+<a asp-controller="Deposit" asp-action="Index"><h2>ฝาก–ถอน</h2><p>ทำรายการและดูประวัติออมทอง</p></a>
+<a asp-area="" asp-controller="Savings" asp-action="Review"><h2>ตรวจสลิปออมทอง</h2><p>ตรวจยอด อนุมัติเงินฝาก ออกใบรับเงินมัดจำ และแจ้ง LINE</p></a>
+<a asp-action="Accounts"><h2>บัญชีออมทอง / รายงานยอด</h2><p>เลือกบัญชีและตรวจยอดคงเหลือ</p></a>
+<a asp-area="" asp-controller="Checkout" asp-action="Slips"><h2>ตรวจสลิป</h2><p>ตรวจหลักฐาน อนุมัติ / ไม่อนุมัติ และเปิดใบเสร็จรับเงิน</p></a>
+<a asp-action="Inventory"><h2>รายการสินค้า</h2><p>แค็ตตาล็อกหน้าร้าน · ยังเป็นข้อมูลตัวอย่าง</p></a>
+<a asp-controller="Customers" asp-action="Index"><h2>เอกสาร</h2><p>เลือกลูกค้าเพื่อเปิดแบบร่างใบเสร็จหรือใบรับเงินมัดจำ</p></a>
+</div>
+<p>ส่วนสัญญาจอง การตัดสต็อก ใบกำกับภาษี และการแจ้ง LINE อัตโนมัติยังอยู่ระหว่างพัฒนา</p>
+</section>

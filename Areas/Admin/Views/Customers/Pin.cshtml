@@ -1,0 +1,20 @@
+@model MemberPinViewModel
+@{ ViewData["Title"] = "ตั้ง / รีเซ็ต PIN สมาชิก"; }
+<section class="customers-page">
+    <h1>ตั้ง / รีเซ็ต PIN สมาชิก</h1>
+    <p>@ViewData["CustomerName"]</p>
+    <p>ตรวจสอบตัวตนลูกค้าก่อนดำเนินการ ให้ลูกค้ากำหนด PIN ใหม่ การรีเซ็ตจะยกเลิกการเข้าสู่ระบบเดิมของสมาชิก</p>
+    <form asp-action="Pin" method="post" class="member-pin-form">
+        <input asp-for="CustomerId" type="hidden" />
+        <div asp-validation-summary="All" class="sale-errors"></div>
+        <label asp-for="Phone">เบอร์โทรศัพท์เข้าสู่ระบบ</label>
+        <input asp-for="Phone" inputmode="tel" required />
+        <label for="new-pin">PIN ใหม่ 6 หลัก</label>
+        <input id="new-pin" name="Pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" required />
+        <label for="confirm-pin">ยืนยัน PIN</label>
+        <input id="confirm-pin" name="ConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password" required />
+        <label><input asp-for="IdentityVerified" required /> ตรวจสอบตัวตนและเบอร์โทรของลูกค้าแล้ว</label>
+        <button type="submit" class="bottom-button">บันทึก PIN ใหม่</button>
+        <a asp-action="Index">กลับรายชื่อลูกค้า</a>
+    </form>
+</section>

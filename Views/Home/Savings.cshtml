@@ -1,0 +1,182 @@
+@model SavingsViewModel
+@{
+    ViewData["Title"] = "โปรแกรมออมทอง";
+}
+
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="เส้นทาง">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <partial name="_Icon" model="@("chevron-right")" />
+            <span>โปรแกรมออมทอง</span>
+        </nav>
+        <h1>โปรแกรมออมทอง</h1>
+        <p>สะสมทองคำแท้ทีละน้อยด้วยบัญชีเงินฝากออมทอง คิดดอกเบี้ยทุกเดือน แลกทองหรือถอนเงินสดได้เมื่อครบกำหนด</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">เลือกแผนการออม</h2>
+                <p class="section__sub">อัตราดอกเบี้ยและขั้นต่ำต่างกันตามระยะเวลาที่เลือก</p>
+            </div>
+        </div>
+
+        <div class="plan-grid">
+            @foreach (var plan in Model.Plans)
+            {
+                <article class="plan-card @(plan.IsPopular ? "plan-card--popular" : "")">
+                    @if (plan.IsPopular)
+                    {
+                        <span class="plan-card__flag">ยอดนิยม</span>
+                    }
+                    <h3>@plan.Name</h3>
+                    <p class="plan-card__rate">
+                        @plan.InterestRate.ToString("0.0#")<small>% ต่อปี · คิดรายวัน</small>
+                    </p>
+                    <p class="plan-card__desc">@plan.Description</p>
+                    <ul class="plan-card__meta">
+                        <li><span>ฝากเปิดบัญชีขั้นต่ำ</span><strong>@plan.MinDeposit.ToBaht()</strong></li>
+                        <li><span>ระยะเวลา</span><strong>@plan.Months เดือน</strong></li>
+                    </ul>
+                    <ul class="plan-card__perks">
+                        @foreach (var perk in plan.Perks)
+                        {
+                            <li><partial name="_Icon" model="@("check")" /> @perk</li>
+                        }
+                    </ul>
+                    <a class="btn-gold btn-gold--block" asp-controller="Home" asp-action="Contact">สมัครแผนนี้</a>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="calc-card">
+            <div class="calc-card__info">
+                <span class="calc-card__eyebrow">กฎปันผลสัญญาออมทอง</span>
+                <h2>ฝากเท่าไหร่ก็ได้ปันผล @Shop.SavingsAnnualDividendPercent.ToString("0.0#")% ต่อปี</h2>
+                <p>
+                    ปันผลคิดสะสมรายวันในอัตรา @SavingsRules.DailyRatePercent(Shop.SavingsAnnualDividendPercent).ToString("0.0####")% ต่อวัน
+                    ตัวอย่างฝาก 1,000 บาท ได้รับปันผลวันละประมาณ @SavingsRules.DailyDividend(1000m, Shop.SavingsAnnualDividendPercent).ToString("0.0##") บาท
+                    ลองใส่ยอดฝากของคุณด้านล่างเพื่อประมาณการปันผล
+                </p>
+            </div>
+            <div class="calc-card__tool" data-rate="@Shop.SavingsAnnualDividendPercent">
+                <label for="calc-amount">ยอดเงินฝาก (บาท)</label>
+                <input class="field" id="calc-amount" type="number" value="1000" min="0" step="100" inputmode="decimal" />
+                <dl class="calc-card__results">
+                    <div><dt>ปันผลต่อวัน</dt><dd id="calc-daily">-</dd></div>
+                    <div><dt>ปันผลต่อเดือน (30 วัน)</dt><dd id="calc-monthly">-</dd></div>
+                    <div><dt>ปันผลต่อปี</dt><dd id="calc-yearly">-</dd></div>
+                </dl>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section--tint">
+    <div class="container">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">ขั้นตอนการออม</h2>
+                <p class="section__sub">สี่ขั้นตอนง่ายๆ จากสมัครจนถึงแลกทอง</p>
+            </div>
+        </div>
+        <ol class="step-grid">
+            @for (var i = 0; i < Model.Steps.Count; i++)
+            {
+                var step = Model.Steps[i];
+                <li class="step-card">
+                    <span class="step-card__num">@(i + 1)</span>
+                    <strong>@step.Title</strong>
+                    <p>@step.Detail</p>
+                </li>
+            }
+        </ol>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container two-col two-col--wide">
+        <div>
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">ราคาทองอ้างอิงวันนี้</h2>
+                    <p class="section__sub">ใช้คำนวณมูลค่าทองเมื่อแลกออก</p>
+                </div>
+            </div>
+            <table class="price-table">
+                <thead>
+                    <tr><th>ประเภท</th><th>รับซื้อ</th><th>ขายออก</th><th>เปลี่ยน</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var price in Model.GoldPrices)
+                    {
+                        <tr>
+                            <td>@price.Label</td>
+                            <td>@price.Buy.ToBahtShort()</td>
+                            <td>@price.Sell.ToBahtShort()</td>
+                            <td class="@(price.Change >= 0 ? "is-up" : "is-down")">@price.Change.ToSigned()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">คำถามที่พบบ่อย</h2>
+                    <p class="section__sub">ข้อสงสัยที่ลูกค้าถามเข้ามามากที่สุด</p>
+                </div>
+            </div>
+            <div class="accordion" id="savingsFaq">
+                @for (var i = 0; i < Model.Faqs.Count; i++)
+                {
+                    var faq = Model.Faqs[i];
+                    <div class="accordion-item">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button @(i == 0 ? "" : "collapsed")" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq-@i"
+                                    aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="faq-@i">
+                                @faq.Question
+                            </button>
+                        </h3>
+                        <div id="faq-@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" data-bs-parent="#savingsFaq">
+                            <div class="accordion-body">@faq.Answer</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tool = document.querySelector(".calc-card__tool");
+            const input = document.querySelector("#calc-amount");
+            if (!tool || !input) return;
+
+            const rate = Number(tool.dataset.rate || 0);
+            const fmt = (v, digits) => v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+            function update() {
+                const principal = Number(input.value) || 0;
+                const daily = principal * rate / 100 / 365;
+                document.querySelector("#calc-daily").textContent = fmt(daily, 2) + " บาท";
+                document.querySelector("#calc-monthly").textContent = fmt(daily * 30, 2) + " บาท";
+                document.querySelector("#calc-yearly").textContent = fmt(principal * rate / 100, 2) + " บาท";
+            }
+
+            input.addEventListener("input", update);
+            update();
+        })();
+    </script>
+}

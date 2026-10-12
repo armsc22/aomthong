@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#241c12"/>
+      <stop offset="1" stop-color="#3a2d1a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7e7b4"/>
+      <stop offset="0.5" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#a8801f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="152" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.3"/>
+  <g transform="rotate(0 200 210)">
+      <path fill="url(#gold)" d="M140 150h120l36 52-96 122-96-122z"/>
+      <path fill="#241c12" opacity=".35" d="M104 202h192l-96 122z"/>
+      <path fill="none" stroke="#241c12" stroke-width="4" opacity=".4" d="M140 150l-12 52 72 122 72-122-12-52M104 202h192"/>
+  </g>
+  <text x="200" y="372" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="20" letter-spacing="4" fill="#c9a84c">DIAMOND 1</text>
+</svg>

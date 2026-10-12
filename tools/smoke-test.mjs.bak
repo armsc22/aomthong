@@ -1,0 +1,180 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import { createServer } from 'node:net';
+import { mkdtemp, mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { once } from 'node:events';
+import { DatabaseSync } from 'node:sqlite';
+import { setTimeout as delay } from 'node:timers/promises';
+const portProbe = createServer();
+await new Promise(resolve => portProbe.listen(0, '127.0.0.1', resolve));
+const port = portProbe.address().port;
+await new Promise(resolve => portProbe.close(resolve));
+const base = `http://127.0.0.1:${port}`;
+const password = randomBytes(24).toString('hex');
+await mkdir('.artifacts/tests', { recursive: true });
+const database = resolve(await mkdtemp('.artifacts/tests/storage-'), 'goldshop.db');
+let log = '';
+function start() {
+const process = spawn('dotnet', ['.artifacts/review/GoldShopWeb.dll', '--urls', base], {
+  env: { ...globalThis.process.env, Database__Path: database, Database__SeedDemoData: 'true', ASPNETCORE_ENVIRONMENT: 'Development', Admin__Password: password, LineApi__ChannelAccessToken: '', Logging__LogLevel__Default: 'Warning' },
+  stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true
+});
+process.stdout.on('data', x => log += x); process.stderr.on('data', x => log += x);
+return process;
+}
+let server = start();
+async function stop() {
+  if (server.exitCode !== null) return;
+  const exited = once(server, 'exit'); server.kill(); await exited;
+}
+async function waitReady() {
+  for (let i = 0; i < 100; i++) {
+    if (server.exitCode !== null) throw new Error(log);
+    try { const response = await fetch(base + '/'); if (response.status === 200) return; } catch {}
+    await delay(150);
+  }
+  throw new Error('Server did not start: ' + log);
+}
+function client() {
+  const cookies = new Map();
+  return async (path, options = {}) => {
+    const response = await fetch(base + path, { ...options, redirect: 'manual', headers: { Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join('; '), ...options.headers } });
+    for (const cookie of response.headers.getSetCookie()) {
+      const pair = cookie.split(';')[0]; const i = pair.indexOf('='); cookies.set(pair.slice(0,i), pair.slice(i+1));
+    }
+    return response;
+  };
+}
+const token = html => { const value = html.match(/name="__RequestVerificationToken"[^>]*value="([^"]+)"/); assert.ok(value, 'anti-forgery token exists'); return value[1]; };
+async function form(c, path, values) {
+  const page = await c(path); assert.equal(page.status, 200);
+  return c(path, { method: 'POST', body: new URLSearchParams({ __RequestVerificationToken: token(await page.text()), ...values }) });
+}
+// The /Account/Register endpoint now refuses any LineUserId that was not first
+// bound to the active session via /Account/BindLineUserId with the server-issued
+// nonce. Mirror that flow from the smoke test by issuing a nonce, binding the
+// supplied LineUserId, then submitting the form with the same nonce echoed back.
+async function bindLine(c, lineUserId) {
+  const page = await c('/Account/Register'); assert.equal(page.status, 200);
+  const html = await page.text();
+  const csrf = token(html);
+  const nonce = html.match(/id="LinkNonce"[^>]*value="([^"]+)"/)?.[1];
+  assert.ok(nonce, 'link nonce present in register page');
+  const bind = await c('/Account/BindLineUserId', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', RequestVerificationToken: csrf },
+    body: JSON.stringify({ userId: lineUserId, nonce }),
+  });
+  assert.equal(bind.status, 200, `BindLineUserId accepted ${lineUserId}`);
+  return nonce;
+}
+async function register(c, values) {
+  const nonce = await bindLine(c, values.LineUserId);
+  return form(c, '/Account/Register', { ...values, LinkNonce: nonce });
+}
+let checks = 0;
+const check = (actual, expected, label) => { assert.equal(actual, expected, label); checks++; };
+try {
+  let ready = false;
+  for (let i = 0; i < 80; i++) {
+    if (server.exitCode !== null) throw new Error(log);
+    try { await fetch(base + '/'); ready = true; break; } catch { await delay(150); }
+  }
+  assert.ok(ready, 'server started');
+  const guest = client();
+  for (const path of ['/', '/Products', '/Cart', '/Home/Savings', '/Home/Contact', '/Account/Login', '/Account/Register']) check((await guest(path)).status, 200, path);
+  check((await guest('/api/core/customers/search')).status, 401, 'anonymous API denied');
+  check((await guest('/api/core/deposits/1/deposit', { method: 'POST', headers: {'Content-Type':'application/json'}, body:'{"amount":10}' })).status, 401, 'anonymous mutation denied');
+  check((await guest('/Admin/Deposit')).status, 302, 'admin requires login');
+  check((await guest('/Admin/Customers')).status, 302, 'customer directory requires administrator');
+  check((await form(guest, '/Account/Login', {MemberCode:'', CitizenId:''})).status, 200, 'empty login handled');
+  check((await register(guest, {FirstName:'Test',LastName:'Member',CitizenId:'',LineUserId:'demo'})).status, 200, 'empty citizen id handled');
+  check((await register(guest, {FirstName:'Test',LastName:'Member',CitizenId:'abcdefghijklm',LineUserId:'demo'})).status, 200, 'non-numeric citizen id rejected');
+  // Debug: probe register separately so a failure here leaves a body to inspect.
+{
+  const probe = await register(guest, {FirstName:'Test',LastName:'Member',CitizenId:'3333333333333',LineUserId:'demo'});
+  if (probe.status !== 302) {
+    const body = await probe.text();
+    await import('node:fs/promises').then(fs => fs.writeFile('register-debug.html', body));
+    console.error('register response body length:', body.length);
+  }
+  check(probe.status, 302, 'registration without optional fields');
+}
+  check((await form(guest, '/Account/Profile', {FirstName:'Updated',LastName:'Member'})).status, 200, 'profile saved');
+  const profile = await (await guest('/Account/Profile')).text();
+  assert.ok(profile.includes('Updated') && profile.includes('PC000003') && profile.includes('3333333333333'), 'profile persisted and identifiers retained'); checks++;
+  const other = client();
+  check((await register(other, {FirstName:'Test',LastName:'Duplicate',CitizenId:'3333333333333',LineUserId:'demo'})).status, 200, 'duplicate registration rejected');
+  check((await other('/Account')).status, 302, 'duplicate registration did not sign in');
+  const cartPage = await guest('/Products'); const cartToken = token(await cartPage.text());
+  for (const quantity of [1, 2147483647]) await guest('/Cart/Add', { method:'POST', body:new URLSearchParams({__RequestVerificationToken:cartToken,productId:'101',quantity:String(quantity)}) });
+  const count = await (await guest('/Cart/Count')).json(); check(count.count, 5, 'cart quantity capped at actual stock without overflow');
+  const admin = client();
+  check((await form(admin, '/Admin/Access/Login', {password:'wrong'})).status, 200, 'wrong administrator password denied');
+  check((await admin('/api/core/status')).status, 401, 'wrong password has no privileges');
+  check((await form(admin, '/Admin/Access/Login', {password})).status, 302, 'administrator login');
+  const page = await admin('/Admin/Deposit'); check(page.status, 200, 'admin page'); const csrf = token(await page.text());
+  const customers = await (await admin('/api/core/customers/search?q=2222222222222')).json();
+  check(customers[0].account.accountNumber, '1021000002', 'search includes selected account');
+  const transaction = (amount, action='deposit', validToken=true) => admin(`/api/core/deposits/2/${action}`, {method:'POST',headers:{'Content-Type':'application/json', ...(validToken ? {RequestVerificationToken:csrf} : {})},body:JSON.stringify({amount})});
+  check((await transaction(10,'deposit',false)).status, 400, 'CSRF rejected');
+  for (const amount of [-1, 0, 0.001, 1000000001]) check((await transaction(amount)).status, 400, 'invalid amount rejected');
+  let summary = await (await transaction(100)).json(); check(summary.totalBalance, 5100, 'deposit balance');
+  summary = await (await transaction(50,'withdraw')).json(); check(summary.totalBalance, 5050, 'withdrawal balance');
+  check((await transaction(9999,'withdraw')).status, 400, 'overdraft rejected');
+  summary = await (await admin('/api/core/deposits/2')).json(); check(summary.entries.length, 3, 'rejected requests do not modify ledger');
+  const directoryPage = await admin('/Admin/Customers');
+  check(directoryPage.status, 200, 'customer directory renders');
+  const directory = await directoryPage.text();
+  check(directory.includes('PC000003') && directory.includes('1021000003') && directory.includes('Updated Member'), true, 'directory includes registered customer and contract');
+  const secondRow = directory.match(/<tr>\s*<td>2<\/td>[\s\S]*?<\/tr>/)?.[0] ?? '';
+  check(secondRow.includes('5,050.00') && secondRow.includes('1.3697') && secondRow.includes('5,051.3697'), true, 'directory daily dividend and total use current balance');
+  check(directory.includes('id="admin-clock"') && directory.includes('admin-clock.js'), true, 'directory includes live clock');
+  check(directory.includes('/js/admin.js'), false, 'deposit-only script excluded from directory');
+  check((await admin('/Admin/Access/Logout', {method:'POST',body:new URLSearchParams({__RequestVerificationToken:csrf})})).status, 302, 'administrator logout');
+  check((await admin('/api/core/status')).status, 401, 'logout removes access');
+  await stop(); server = start(); await waitReady();
+  const restored = client();
+  check((await form(restored, '/Account/Login', {MemberCode:'PC000003', CitizenId:'3333333333333'})).status, 302, 'registered member survives restart');
+  const restoredProfile = await (await restored('/Account/Profile')).text();
+  assert.ok(restoredProfile.includes('Updated'), 'profile edit survives restart'); checks++;
+  const restoredAdmin = client();
+  await form(restoredAdmin, '/Admin/Access/Login', {password});
+  summary = await (await restoredAdmin('/api/core/deposits/2')).json();
+  check(summary.totalBalance, 5050, 'balance survives restart');
+  check(summary.entries.length, 3, 'ledger survives restart without reseeding');
+  const restoredCustomers = await (await restoredAdmin('/api/core/customers/search')).json();
+  check(restoredCustomers.length, 3, 'restart does not duplicate seed members');
+  check(restoredCustomers.find(c => c.memberCode === 'PC000003').account.accountNumber, '1021000003', 'new account survives restart');
+  const restoredCsrf = token(await (await restoredAdmin('/Admin/Deposit')).text());
+  const postAmount = (amount, action='deposit') => restoredAdmin(`/api/core/deposits/2/${action}`, {method:'POST',headers:{'Content-Type':'application/json',RequestVerificationToken:restoredCsrf},body:JSON.stringify({amount})});
+  const deposits = await Promise.all(Array.from({length:12}, () => postAmount(0.01)));
+  check(deposits.every(response => response.status === 200), true, 'concurrent deposits accepted');
+  summary = await (await restoredAdmin('/api/core/deposits/2')).json();
+  check(summary.totalBalance, 5050.12, 'concurrent deposits preserve exact cents');
+  check(new Set(summary.entries.map(e => e.seq)).size, 15, 'concurrent ledger sequence is unique');
+  const withdrawals = await Promise.all([postAmount(4000,'withdraw'), postAmount(4000,'withdraw')]);
+  check(withdrawals.filter(response => response.status === 200).length, 1, 'concurrent withdrawals cannot overdraw');
+  summary = await (await restoredAdmin('/api/core/deposits/2')).json();
+  check(summary.totalBalance, 1050.12, 'only one concurrent withdrawal committed');
+  const db = new DatabaseSync(database);
+  try {
+    check(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok', 'database integrity');
+    check(db.prepare('PRAGMA foreign_key_check').all().length, 0, 'all foreign keys valid');
+    check(db.prepare('SELECT BalanceAfter FROM Ledger WHERE AccountId=2 ORDER BY Seq DESC LIMIT 1').get().BalanceAfter, 105012, 'money stored in integer satang');
+    db.exec("CREATE TRIGGER fail_account BEFORE INSERT ON Accounts BEGIN SELECT RAISE(ABORT, 'test account failure'); END;");
+    try {
+      const failedRegistration = await register(client(), {FirstName:'Rollback',LastName:'Test',CitizenId:'4444444444444',LineUserId:'demo'});
+      check(failedRegistration.status, 500, 'injected account write failure surfaces');
+      check(db.prepare("SELECT COUNT(*) AS count FROM Customers WHERE CitizenId='4444444444444'").get().count, 0, 'failed account creation rolls back member insertion');
+    } finally { db.exec('DROP TRIGGER fail_account'); }
+    const retryRegistration = await register(client(), {FirstName:'Retry',LastName:'Test',CitizenId:'4444444444444',LineUserId:'demo'});
+    check(retryRegistration.status, 302, 'registration can recover after storage error');
+  } finally { db.close(); }
+  console.log(`PASS: ${checks} integration checks; database: ${database}`);
+} catch (error) { console.error(log); throw error; }
+finally { await stop(); }
+
+

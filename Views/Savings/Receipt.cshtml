@@ -1,0 +1,10 @@
+@model SavingsRequest
+@inject ShopSettings Shop
+@{Layout=null;var issued=DateTimeOffset.Parse(Model.ReviewedAt).ToOffset(TimeSpan.FromHours(7));}
+<!doctype html><html lang="th"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>ใบรับเงินมัดจำ @Model.ReceiptNumber</title><link rel="stylesheet" href="~/css/receipt.css" asp-append-version="true"/></head>
+<body class="receipt-page"><nav class="receipt-toolbar"><button onclick="window.print()">พิมพ์ / บันทึก PDF</button></nav><main class="receipt-sheet">
+<header class="receipt-header"><div class="receipt-brand"><img src="~/img/logo.png" alt="โลโก้ร้าน"/><div><h2>@Shop.ShopName</h2><p>@Shop.Address</p><p>โทร: @Shop.Phone</p></div></div><div class="receipt-title"><h1>ใบรับเงินมัดจำ</h1><span>DEPOSIT RECEIPT</span></div></header>
+<dl class="receipt-details"><div><dt>เลขที่เอกสาร</dt><dd>@Model.ReceiptNumber</dd></div><div><dt>วันที่รับชำระ · เวลาไทย</dt><dd>@issued.ToString("dd/MM/yyyy HH:mm:ss")</dd></div><div><dt>รหัสลูกค้า</dt><dd>@Model.MemberCode</dd></div><div><dt>ชื่อ–นามสกุล</dt><dd>@Model.CustomerName</dd></div><div><dt>เลขบัญชีออมทอง</dt><dd>@Model.AccountNumber</dd></div><div><dt>โทรศัพท์</dt><dd>@Model.Phone</dd></div><div class="receipt-wide"><dt>ที่อยู่</dt><dd>@Model.Address</dd></div><div class="receipt-wide"><dt>เลขที่รายการ</dt><dd>@Model.DisplayNumber</dd></div></dl>
+<table class="receipt-items"><thead><tr><th>รายการ</th><th>จำนวน</th><th class="amount">จำนวนเงิน (บาท)</th></tr></thead><tbody><tr><td>รับเงินมัดจำ / ฝากเงินออมทอง</td><td>1</td><td class="amount">@Model.Amount.ToString("N2")</td></tr></tbody></table>
+<section class="receipt-totals receipt-deposit-totals"><span class="receipt-watermark" aria-hidden="true">DEPOSIT</span><div class="net"><span>ยอดรับชำระ</span><span>@Model.Amount.ToBaht()</span></div><div><span>ยอดคงเหลือหลังรายการ</span><span>@Model.Balance.ToBaht()</span></div></section>
+<footer class="receipt-footer"><strong>ชำระเรียบร้อย · ขอบคุณที่ไว้วางใจ @Shop.ShopName</strong><p>ใบรับเงินมัดจำสำหรับฝากออมทอง</p></footer></main></body></html>

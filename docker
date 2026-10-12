@@ -1,0 +1,7 @@
+cd F:\GoldShopWeb
+git init
+git add .
+git commit -m "init"
+# สร้าง repo ใหม่ใน github.com แล้วเอา URL มาใส่
+git remote add origin https://github.com/ชื่อ/ชื่อrepo.git
+git push -u origin main

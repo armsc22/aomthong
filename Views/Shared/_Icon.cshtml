@@ -1,0 +1,127 @@
+@model string
+@{
+    var name = Model ?? "";
+}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    @switch (name)
+    {
+        case "bar":
+            <path d="M4.5 9.5h15L17.5 19h-11L4.5 9.5z" />
+            <path d="M7.5 9.5 9.5 5h5l2 4.5" />
+            break;
+        case "necklace":
+            <path d="M5 4c0 7 3.1 11.5 7 11.5S19 11 19 4" />
+            <path d="m12 15.5-2.4 3.2L12 22l2.4-3.3L12 15.5z" />
+            break;
+        case "ring":
+            <circle cx="12" cy="14.5" r="5.5" />
+            <path d="m9 9 3-5 3 5" />
+            break;
+        case "bracelet":
+            <circle cx="12" cy="12" r="7.5" stroke-dasharray="3.2 2.6" />
+            break;
+        case "earring":
+            <path d="M8.5 3.5a3.5 3.5 0 0 0 7 0" />
+            <path d="m12 9-3 4.5 3 6 3-6L12 9z" />
+            break;
+        case "diamond":
+            <path d="M6.5 3h11L21 9l-9 12L3 9l3.5-6z" />
+            <path d="M3 9h18" />
+            <path d="m9.5 3-1.7 6L12 21l4.2-12L14.5 3" />
+            break;
+        case "gift":
+            <path d="M3 8.5h18V13H3z" />
+            <path d="M5.5 13h13v8h-13z" />
+            <path d="M12 8.5V21" />
+            <path d="M12 8.5S10.6 3.5 8 3.5a2.5 2.5 0 0 0 0 5h4zm0 0s1.4-5 4-5a2.5 2.5 0 0 1 0 5h-4z" />
+            break;
+        case "cart":
+            <path d="M2.5 3.5h2.6l2.5 11.3a1.8 1.8 0 0 0 1.8 1.4h8.1a1.8 1.8 0 0 0 1.8-1.4L21 7.5H6" />
+            <circle cx="10" cy="20" r="1.4" />
+            <circle cx="18" cy="20" r="1.4" />
+            break;
+        case "search":
+            <circle cx="10.5" cy="10.5" r="7" />
+            <path d="m20.5 20.5-5-5" />
+            break;
+        case "phone":
+            <path d="M6.5 3h3.2l1.7 4.3-2.2 1.5a12.5 12.5 0 0 0 5.9 5.9l1.5-2.2L21 14.2v3.3a2 2 0 0 1-2.2 2A17.5 17.5 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3z" />
+            break;
+        case "menu":
+            <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
+            break;
+        case "close":
+            <path d="M6 6l12 12M18 6 6 18" />
+            break;
+        case "chevron-left":
+            <path d="M14.5 5.5 8 12l6.5 6.5" />
+            break;
+        case "chevron-right":
+            <path d="M9.5 5.5 16 12l-6.5 6.5" />
+            break;
+        case "chevron-down":
+            <path d="M5.5 9.5 12 16l6.5-6.5" />
+            break;
+        case "check":
+            <path d="m4.5 12.5 5 5 10-11" />
+            break;
+        case "truck":
+            <path d="M2.5 6.5h11v9h-11z" />
+            <path d="M13.5 10h4l3 3v2.5h-7z" />
+            <circle cx="7" cy="18" r="1.6" />
+            <circle cx="17" cy="18" r="1.6" />
+            break;
+        case "shield":
+            <path d="M12 3l7.5 2.8v5.5c0 4.6-3.1 8.2-7.5 9.7-4.4-1.5-7.5-5.1-7.5-9.7V5.8L12 3z" />
+            <path d="m8.8 12 2.2 2.2 4.2-4.4" />
+            break;
+        case "star":
+            <path d="m12 3.5 2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L4.4 9.9l6-.8L12 3.5z" />
+            break;
+        case "plus":
+            <path d="M12 5v14M5 12h14" />
+            break;
+        case "minus":
+            <path d="M5 12h14" />
+            break;
+        case "trash":
+            <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
+            break;
+        case "clock":
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M12 7v5.3l3.4 2" />
+            break;
+        case "mail":
+            <path d="M3 6h18v12H3z" />
+            <path d="m3 7 9 6.5L21 7" />
+            break;
+        case "pin":
+            <path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" />
+            <circle cx="12" cy="10.3" r="2.6" />
+            break;
+        case "user":
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4.5 20.5c1.4-4 4-6 7.5-6s6.1 2 7.5 6" />
+            break;
+        case "arrow-right":
+            <path d="M4 12h15m-6-6 6 6-6 6" />
+            break;
+        case "sparkle":
+            <path d="M12 3.5c.9 4.6 2.4 6.1 7 7-4.6.9-6.1 2.4-7 7-.9-4.6-2.4-6.1-7-7 4.6-.9 6.1-2.4 7-7z" />
+            break;
+        case "refresh":
+            <path d="M20 12a8 8 0 1 1-2.6-5.9" />
+            <path d="M20.5 3.5V9H15" />
+            break;
+        case "facebook":
+            <path d="M14.5 8.5H17V5h-2.5a3.5 3.5 0 0 0-3.5 3.5V11H8.5v3.5H11V21h3.5v-6.5H17L17.5 11h-3V9a.5.5 0 0 1 .5-.5z" />
+            break;
+        case "line":
+            <path d="M12 4c-4.4 0-8 2.9-8 6.5 0 3.2 2.8 5.9 6.7 6.4.4.1.7.3.7.6l-.1 1c0 .3.2.4.5.2l2.9-1.7c.6-.3 1.1-.5 1.8-.6 3-.5 5.5-2.6 5.5-5.9C20 6.9 16.4 4 12 4z" />
+            break;
+        default:
+            <circle cx="12" cy="12" r="8" />
+            break;
+    }
+</svg>

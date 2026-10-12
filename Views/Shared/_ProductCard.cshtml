@@ -1,0 +1,61 @@
+@model Product
+@{
+    var detailsUrl = Url.Action("Details", "Products", new { slug = Model.Slug });
+}
+<article class="product-card">
+    <a class="product-card__media" href="@detailsUrl" aria-label="@Model.Name">
+        <img src="@Model.Image" alt="@Model.Name" loading="lazy" width="320" height="320" />
+        <span class="product-card__badges">
+            @if (Model.DiscountPercent > 0)
+            {
+                <span class="badge badge--sale">-@Model.DiscountPercent.ToString("0")%</span>
+            }
+            @if (Model.IsNew)
+            {
+                <span class="badge badge--new">ใหม่</span>
+            }
+            @if (Model.IsBestSeller)
+            {
+                <span class="badge badge--hot">ขายดี</span>
+            }
+        </span>
+    </a>
+
+    <div class="product-card__body">
+        <p class="product-card__meta">@Model.Weight · @Model.Purity</p>
+        <h3 class="product-card__title">
+            <a href="@detailsUrl">@Model.Name</a>
+        </h3>
+        <p class="product-card__desc">@Model.ShortDescription</p>
+
+        <div class="product-card__footer">
+            <div class="price-block">
+                @if (Model.OldPrice is > 0)
+                {
+                    <span class="price-block__old">@Model.OldPrice.Value.ToBaht()</span>
+                }
+                <span class="price-block__now">@Model.Price.ToBaht()</span>
+            </div>
+
+            <form asp-controller="Cart" asp-action="Add" method="post" class="add-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" value="@Model.Id" />
+                <input type="hidden" name="quantity" value="1" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                <button type="submit" class="btn-icon" title="เพิ่มลงตะกร้า" aria-label="เพิ่ม @Model.Name ลงตะกร้า"
+                        disabled="@(!Model.InStock)">
+                    <partial name="_Icon" model="@("cart")" />
+                </button>
+            </form>
+        </div>
+
+        @if (!Model.InStock)
+        {
+            <p class="stock stock--out">สินค้าหมดชั่วคราว</p>
+        }
+        else if (Model.Stock <= 5)
+        {
+            <p class="stock stock--low">เหลือ @Model.Stock ชิ้น</p>
+        }
+    </div>
+</article>

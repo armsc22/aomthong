@@ -1,0 +1,83 @@
+@model ProfileViewModel
+@inject GoldShopWeb.Services.AccountService Account
+@{
+    ViewData["Title"] = "โปรไฟล์ของฉัน";
+}
+
+<section class="section">
+    <div class="container container--narrow">
+        <div class="account-card">
+            <div class="account-card__head">
+                <img src="~/img/logo.png" alt="" width="56" height="56" />
+                <div>
+                    <h1>โปรไฟล์ของฉัน</h1>
+                    <p>ข้อมูลสมาชิกและช่องทางติดต่อ</p>
+                </div>
+            </div>
+
+            @if (Model.Saved)
+            {
+                <p class="form-success">บันทึกข้อมูลเรียบร้อยแล้ว</p>
+            }
+
+            <form asp-controller="Account" asp-action="Profile" method="post" class="account-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error"></div>
+
+                <div class="account-form__row">
+                    <div>
+                        <label>รหัสสมาชิก</label>
+                        <input class="field" value="@Model.MemberCode" readonly />
+                    </div>
+                    <div>
+                        <label>เลขบัตรประชาชน</label>
+                        <input class="field" value="@Model.CitizenId" readonly />
+                    </div>
+                </div>
+
+                <div class="account-form__row">
+                    <div>
+                        <label for="firstName">ชื่อ</label>
+                        <input class="field" id="firstName" name="FirstName" value="@Model.FirstName" required />
+                    </div>
+                    <div>
+                        <label for="lastName">นามสกุล</label>
+                        <input class="field" id="lastName" name="LastName" value="@Model.LastName" required />
+                    </div>
+                </div>
+
+                <div class="account-form__row">
+                    <div>
+                        <label for="phone">เบอร์โทรเข้าสู่ระบบ (ติดต่อร้านเพื่อเปลี่ยน)</label>
+                        <input class="field" id="phone" name="Phone" value="@Model.Phone" inputmode="tel" readonly />
+                    </div>
+                    <div>
+                        <label for="email">อีเมล</label>
+                        <input class="field" id="email" name="Email" value="@Model.Email" type="email" />
+                    </div>
+                </div>
+
+                <label for="address">ที่อยู่จัดส่ง</label>
+                <textarea class="field" id="address" name="Address" rows="3">@Model.Address</textarea>
+
+                <label for="lineUserId">LINE User ID (สำหรับรับแจ้งยอด)</label>
+                <p id="line-status">เชื่อมบัญชี LINE เพื่อยืนยันการรับแจ้งเตือน</p>
+                <input type="hidden" id="LinkNonce" value="@ViewData["LinkNonce"]" />
+                <button type="button" id="line-connect-btn" class="btn-line" data-liff-id="@ViewData["LiffId"]" data-bind-url="@Url.Action("BindLineUserId", "Account")">ยืนยันบัญชี LINE</button>
+
+                <button class="btn-gold" type="submit">บันทึกข้อมูล</button>
+                <a class="btn-ghost" asp-controller="Account" asp-action="Index">กลับหน้าบัญชี</a>
+            </form>
+            <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top:16px">
+                <button type="submit" class="btn-ghost">ออกจากระบบ (Logout)</button>
+            </form>
+            @if(Account.CurrentCustomerId() is int customerId){<partial name="_RegistrationDocuments" model="customerId"/>}
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="~/js/line-link.js" asp-append-version="true"></script>
+}

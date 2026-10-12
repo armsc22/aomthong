@@ -1,0 +1,186 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "หน้าแรก";
+}
+
+<section class="hero">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+        <div class="carousel-indicators">
+            @for (var i = 0; i < Model.Banners.Count; i++)
+            {
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@i"
+                        class="@(i == 0 ? "active" : "")" aria-label="สไลด์ที่ @(i + 1)"
+                        aria-current="@(i == 0 ? "true" : null)"></button>
+            }
+        </div>
+        <div class="carousel-inner">
+            @for (var i = 0; i < Model.Banners.Count; i++)
+            {
+                var banner = Model.Banners[i];
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="hero__slide hero__slide--@banner.Theme"
+                         style="background-image: linear-gradient(100deg, rgba(20,16,12,.92) 0%, rgba(20,16,12,.55) 45%, rgba(20,16,12,.15) 70%), url('@banner.Image');">
+                        <div class="container">
+                            <div class="hero__content">
+                                <span class="hero__badge">@banner.Badge</span>
+                                <h1 class="hero__title">@banner.Title</h1>
+                                <p class="hero__subtitle">@banner.Subtitle</p>
+                                <div class="hero__actions">
+                                    <a class="btn-gold" href="@banner.CtaUrl">
+                                        @banner.CtaText
+                                        <partial name="_Icon" model="@("arrow-right")" />
+                                    </a>
+                                    <a class="btn-ghost" asp-controller="Home" asp-action="Savings">ดูโปรแกรมออมทอง</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">ก่อนหน้า</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">ถัดไป</span>
+        </button>
+    </div>
+</section>
+
+<section class="trust-strip">
+    <div class="container trust-strip__inner">
+        <div class="trust-item">
+            <partial name="_Icon" model="@("shield")" />
+            <div><strong>ทองแท้มาตรฐาน</strong><span>รับรองโดยสมาคมค้าทองคำ</span></div>
+        </div>
+        <div class="trust-item">
+            <partial name="_Icon" model="@("refresh")" />
+            <div><strong>รับซื้อคืนราคาสูง</strong><span>ตีราคาฟรีหน้าร้านทุกสาขา</span></div>
+        </div>
+        <div class="trust-item">
+            <partial name="_Icon" model="@("truck")" />
+            <div><strong>จัดส่งประกันเต็มวงเงิน</strong><span>ถึงมือภายใน 1-3 วันทำการ</span></div>
+        </div>
+        <div class="trust-item">
+            <partial name="_Icon" model="@("star")" />
+            <div><strong>ผ่อน 0% นาน 10 เดือน</strong><span>กับบัตรเครดิตที่ร่วมรายการ</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">เลือกตามหมวดหมู่</h2>
+                <p class="section__sub">ตั้งแต่ทองแท่งเพื่อการลงทุน ไปจนถึงเครื่องประดับและของขวัญมงคล</p>
+            </div>
+            <a class="section__more" asp-controller="Products" asp-action="Index">
+                ดูทั้งหมด <partial name="_Icon" model="@("arrow-right")" />
+            </a>
+        </div>
+
+        <div class="category-grid">
+            @foreach (var category in Model.Categories)
+            {
+                <a class="category-card" asp-controller="Products" asp-action="Index" asp-route-category="@category.Slug">
+                    <img src="@category.Image" alt="" loading="lazy" />
+                    <span class="category-card__icon">
+                        <partial name="_Icon" model="@category.Icon" />
+                    </span>
+                    <strong>@category.Name</strong>
+                    <small>@category.Tagline</small>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section section--tint">
+    <div class="container">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">สินค้าแนะนำ</h2>
+                <p class="section__sub">คัดสรรโดยช่างทองประจำร้าน อัปเดตทุกสัปดาห์</p>
+            </div>
+            <a class="section__more" asp-controller="Products" asp-action="Index" asp-route-sort="popular">
+                ดูทั้งหมด <partial name="_Icon" model="@("arrow-right")" />
+            </a>
+        </div>
+
+        <div class="product-grid">
+            @foreach (var product in Model.Featured)
+            {
+                <partial name="_ProductCard" model="product" />
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container promo-grid">
+        @foreach (var promo in ShopCatalog.PromoTiles)
+        {
+            <a class="promo-tile" href="@promo.CtaUrl" style="background-image: linear-gradient(120deg, rgba(20,16,12,.9), rgba(20,16,12,.45)), url('@promo.Image');">
+                <strong>@promo.Title</strong>
+                <span>@promo.Subtitle</span>
+                <em>@promo.CtaText <partial name="_Icon" model="@("arrow-right")" /></em>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="section">
+    <div class="container two-col">
+        <div>
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">มาใหม่ล่าสุด</h2>
+                    <p class="section__sub">ชิ้นงานที่เพิ่งเข้าร้านสัปดาห์นี้</p>
+                </div>
+            </div>
+            <div class="product-grid product-grid--two">
+                @foreach (var product in Model.NewArrivals)
+                {
+                    <partial name="_ProductCard" model="product" />
+                }
+            </div>
+        </div>
+
+        <div>
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">ขายดีประจำเดือน</h2>
+                    <p class="section__sub">ลูกค้านิยมซื้อซ้ำและบอกต่อ</p>
+                </div>
+            </div>
+            <div class="product-grid product-grid--two">
+                @foreach (var product in Model.BestSellers)
+                {
+                    <partial name="_ProductCard" model="product" />
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="savings-band">
+    <div class="container savings-band__inner">
+        <div>
+            <span class="savings-band__eyebrow">โปรแกรมออมทอง</span>
+            <h2>ทยอยออมเดือนละนิด ก็เป็นเจ้าของทองได้</h2>
+            <p>เปิดบัญชีออมทองขั้นต่ำ 1,000 บาท คิดดอกเบี้ยเงินฝาก สะสมยอดแลกทองแท่งหรือทองรูปพรรณได้เมื่อครบกำหนด ทำรายการผ่านหน้าเว็บหรือที่สาขา</p>
+            <div class="savings-band__actions">
+                <a class="btn-gold" asp-controller="Home" asp-action="Savings">ดูรายละเอียดโปรแกรม</a>
+                <a class="btn-ghost" asp-controller="Home" asp-action="Contact">สอบถามเจ้าหน้าที่</a>
+            </div>
+        </div>
+        <div class="savings-band__points">
+            <div><partial name="_Icon" model="@("check")" /> เปิดบัญชีออนไลน์ได้ใน 5 นาที</div>
+            <div><partial name="_Icon" model="@("check")" /> ดอกเบี้ยเงินฝากเข้าบัญชีทุกเดือน</div>
+            <div><partial name="_Icon" model="@("check")" /> แจ้งยอดและใบเสร็จผ่าน LINE อัตโนมัติ</div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,35 @@
+@model List<GoldShopWeb.Services.SlipSummary>
+@{ ViewData["Title"] = "สลิปรอตรวจสอบ"; Layout = "/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; }
+<section class="section container">
+    <h1>สลิปรอตรวจสอบ</h1>
+    <p>รายการล่าสุดไม่เกิน 200 รายการ · ตรวจยอดรับเงินจริงก่อนอนุมัติ · การตรวจสลิปยังไม่ตัดสต็อกสินค้า</p>
+    @if(TempData["ReviewMessage"] is string message){<p role="status">@message</p>}
+    @foreach (var slip in Model)
+    {
+        var data = System.Text.Json.JsonDocument.Parse(slip.Snapshot).RootElement;
+        <article class="account-card">
+            <h2>@data.GetProperty("FullName").GetString()</h2>
+            <p>รหัสลูกค้า: @data.GetProperty("MemberCode").GetString() · เลขที่รายการ: @slip.TransactionNumber</p>
+            <p>ยอดรวม: @data.GetProperty("Total").GetDecimal().ToBaht() · ตรวจสอบ : @(slip.Status == "Approved" ? "ชำระเรียบร้อย" : slip.Status == "Rejected" ? "ไม่ผ่าน" : "รอผล")</p>
+            <ul>
+            @foreach(var item in data.GetProperty("Items").EnumerateArray()) {
+                <li>@item.GetProperty("Name").GetString() · @item.GetProperty("Quantity").GetInt32() ชิ้น × @item.GetProperty("Price").GetDecimal().ToBaht()</li>
+            }
+            </ul>
+            <p>ค่าจัดส่ง: @data.GetProperty("Shipping").GetDecimal().ToBaht()</p>
+            <a asp-action="Slip" asp-route-id="@slip.Id">ดาวน์โหลดสลิป</a>
+            @if(slip.Status == "Pending") {
+            <form asp-action="ReviewSlip" method="post">
+                <input type="hidden" name="id" value="@slip.Id" />
+                <label><input type="checkbox" name="verified" value="true" required /> ตรวจสอบยอดเงินและหลักฐานแล้ว</label>
+                <label>หมายเหตุ (ต้องระบุเมื่อไม่อนุมัติ)<input name="note" maxlength="500" /></label>
+                <button name="decision" value="approve" type="submit">อนุมัติการชำระเงิน</button>
+                <button name="decision" value="reject" type="submit">ไม่อนุมัติ</button>
+            </form>
+            } else {
+                <p>@slip.Note</p>
+                @if(slip.ReceiptNumber is not null){<a asp-action="Receipt" asp-route-id="@slip.Id">ใบเสร็จ @slip.ReceiptNumber</a>}
+            }
+        </article>
+    }
+</section>

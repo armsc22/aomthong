@@ -1,0 +1,18 @@
+@model IReadOnlyList<SavingsRequest>
+@{Layout="/Areas/Admin/Views/Shared/_AdminLayout.cshtml";ViewData["Title"]="ตรวจสลิปออมทอง";}
+<section class="teller-workspace"><h1>ตรวจสลิปออมทอง</h1><p>ตรวจยอดรับเงินจริงก่อนอนุมัติ การอนุมัติจะเพิ่มยอดออมทองและออกใบรับเงินมัดจำ</p>
+@if(TempData["SavingsMessage"] is string message){<p role="status">@message</p>}
+@foreach(var row in Model){<article class="account-card" style="background:white;padding:24px;margin:16px 0;border:1px solid #ddd;border-radius:10px">
+<h2>@row.CustomerName · @row.MemberCode</h2><p>เลขที่รายการ: @row.DisplayNumber</p><p>บัญชีออมทอง: @row.AccountNumber · จำนวนเงิน: @row.Amount.ToBaht()</p>
+<p>สถานะ: @(row.Status=="Approved"?"ชำระเรียบร้อย":row.Status=="Rejected"?"ไม่อนุมัติ":"รอตรวจสอบ")</p>
+<a asp-action="Slip" asp-route-id="@row.Id">ดาวน์โหลดสลิป</a>
+@if(row.Status=="Pending"){
+<form asp-action="Decide" method="post"><input type="hidden" name="id" value="@row.Id"/>
+<p><label><input type="checkbox" name="verified" value="true" required/> ตรวจสอบยอดเงินและหลักฐานแล้ว</label></p>
+<label>หมายเหตุ / เหตุผลไม่อนุมัติ<input name="note" maxlength="500"/></label>
+<button name="decision" value="approve">อนุมัติและเพิ่มยอดออมทอง</button><button name="decision" value="reject">ไม่อนุมัติ</button></form>
+}else{<p>@row.Note · ผู้ตรวจ: @row.ReviewedBy</p>}
+@if(row.Status=="Approved"){<p><a asp-action="Receipt" asp-route-id="@row.Id">ใบรับเงินมัดจำ @row.ReceiptNumber</a></p>}
+@if(row.Status is "Pending" or "Approved"){<form asp-action="RetryMessage" method="post"><input type="hidden" name="id" value="@row.Id"/><button>ส่ง LINE อีกครั้งหากยังไม่สำเร็จ</button></form>}
+</article>}
+</section>

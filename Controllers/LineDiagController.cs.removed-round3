@@ -1,0 +1,63 @@
+using GoldShopWeb.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace GoldShopWeb.Controllers;
+
+/// <summary>
+/// TEMPORARY diagnostic controller used by the goldshop-line-verify agent to
+/// exercise the real outbound LINE push path during round 3 of the LINE OA
+/// verification. MUST be removed once the round completes. Returns 404 in
+/// non-Development environments regardless of route.
+/// </summary>
+[ApiController]
+[Route("api/_diag")]
+public class LineDiagController : ControllerBase
+{
+    private readonly LineMessagingService _line;
+    private readonly IWebHostEnvironment _env;
+
+    public LineDiagController(LineMessagingService line, IWebHostEnvironment env)
+    {
+        _line = line;
+        _env = env;
+    }
+
+    public record LinePushSelfResult(
+        bool CalledSendRegistration,
+        bool LineReturnedTrue,
+        string MaskedTokenPrefix,
+        string MaskedLineUserId,
+        DateTime TimestampUtc,
+        string Channel);
+
+    [HttpPost("line-push-self")]
+    public async Task<IActionResult> LinePushSelf(CancellationToken ct)
+    {
+        if (!_env.IsDevelopment()) return NotFound();
+
+        var adminId = _line.AdminUserId;
+        if (string.IsNullOrEmpty(adminId))
+        {
+            return BadRequest(new { error = "AdminUserId not configured" });
+        }
+
+        var ok = await _line.SendRegistrationSuccessAsync(
+            adminId,
+            memberCode: "GS-VERIFY-0001",
+            phone: "08XXXXXXXX",
+            citizenId: "1XXXXXXXXXXXX",
+            fullName: "LINE Verify Round 3");
+
+        var masked = adminId.Length <= 8
+            ? "***"
+            : adminId[..4] + "..." + adminId[^4..];
+
+        return Ok(new LinePushSelfResult(
+            CalledSendRegistration: true,
+            LineReturnedTrue: ok,
+            MaskedTokenPrefix: "<masked-in-service-log>",
+            MaskedLineUserId: masked,
+            TimestampUtc: DateTime.UtcNow,
+            Channel: "@227sbjel"));
+    }
+}
